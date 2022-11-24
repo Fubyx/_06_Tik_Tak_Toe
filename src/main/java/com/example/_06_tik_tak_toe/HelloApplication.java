@@ -35,8 +35,8 @@ public class HelloApplication extends Application {
         GridPane gridPane = new GridPane();
 
 
-        gridPane.setVgap(10);
-        gridPane.setHgap(10);
+        //gridPane.setVgap(10);
+        //gridPane.setHgap(10);
         gridPane.setPadding(new Insets(20));
         gridPane.setAlignment(Pos.CENTER);
 
