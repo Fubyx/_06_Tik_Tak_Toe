@@ -12,11 +12,16 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 
 public class HelloApplication extends Application {
+
+
+    private boolean turnOfPlayer1 = true;
+
     @Override
     public void start(Stage stage) throws IOException {
         stage.setTitle("Tic Tac Toe");
@@ -29,13 +34,15 @@ public class HelloApplication extends Application {
 
         GridPane gridPane = new GridPane();
 
-        final int TWO_COLUMN_SPAN = 2;
-
 
         gridPane.setVgap(10);
         gridPane.setHgap(10);
         gridPane.setPadding(new Insets(20));
         gridPane.setAlignment(Pos.CENTER);
+
+        Label winnerLabel = new Label("");
+        winnerLabel.setPrefWidth(1000);
+        gridPane.add(winnerLabel, 0, 0, width, 1);
 
         Button[][] fields = new Button[width][width];
         EventHandler buttonPress = new EventHandler<ActionEvent>() {
@@ -44,7 +51,12 @@ public class HelloApplication extends Application {
                 if (e.getSource() instanceof Button) {
                     Button temp = (Button) e.getSource();
                     if (temp.getText().equals("")) {
-                        temp.setText("X");
+                        if (turnOfPlayer1) {
+                            temp.setText("X");
+                        } else {
+                            temp.setText("O");
+                        }
+                        turnOfPlayer1 = !turnOfPlayer1;
                     }
                 }
             }
@@ -58,7 +70,7 @@ public class HelloApplication extends Application {
                 fields[x][y].setPrefHeight(1000.0);
                 fields[x][y].setOnAction(buttonPress);
                 // set position in gridpane
-                gridPane.add(fields[x][y], x, y);
+                gridPane.add(fields[x][y], x, y+1);
             }
         }
 
@@ -69,6 +81,11 @@ public class HelloApplication extends Application {
         scene.getStylesheets().add(getClass().getResource("customButton.css").toExternalForm());
 
         stage.setScene(scene);
+    }
+    private boolean checkwin() {
+        // returns true if someone won
+
+        return false;
     }
 
     public static void main(String[] args) {
