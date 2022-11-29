@@ -83,7 +83,7 @@ public class HelloApplication extends Application {
                     } else {
                         botField[x][y] = 'O';
                     }
-                    int tempScore = botRecursion(botField, false);
+                    int tempScore = botRecursion(botField, !turnOfPlayer1);
                     if (tempScore > saveBiggestRecursionScore[0]) {
                         saveBiggestRecursionScore[0] = tempScore;
                         saveBiggestRecursionScore[1] = x;
@@ -93,11 +93,32 @@ public class HelloApplication extends Application {
                 }
             }
         }
+        if (turnOfPlayer1) {
+            field[saveBiggestRecursionScore[1]][saveBiggestRecursionScore[2]].setText("X");
+        } else {
+            field[saveBiggestRecursionScore[1]][saveBiggestRecursionScore[2]].setText("O");
+        }
     }
 
     private int botRecursion(char[][] botField, boolean turn) {
         int score = 0;
-
+        for (int y = 0; y < width; y++) {
+            for (int x = 0; x < width; x++) {
+                if (botField[x][y] == '\0') {
+                    if (turn) {
+                        botField[x][y] = 'X';
+                    } else {
+                        botField[x][y] = 'O';
+                    }
+                    if (botCheckForWin(botField)) {
+                        score -= 1;
+                    } else {
+                        score -= botRecursion(botField, !turn);
+                    }
+                    botField[x][y] = '\0';
+                }
+            }
+        }
         return score;
     }
 
@@ -129,6 +150,16 @@ public class HelloApplication extends Application {
                                     winnerLabel.setText("Player X won");
                                     stop = true;
                                 }
+
+
+                                turnOfPlayer1 = !turnOfPlayer1;
+                                bot();
+                                if (checkForWin()) {
+                                    winnerLabel.setText("Player O won");
+                                    stop = true;
+                                }
+
+
                             } else {
                                 temp.setText("O");
                                 if (checkForWin()) {
@@ -216,6 +247,69 @@ public class HelloApplication extends Application {
         checkString = field[0][width - 1].getText();
         for (int x = 0; x < width; x++) {
             if (field[x][width - x - 1].getText().equals("") || !field[x][width - 1 - x].getText().equals(checkString)) {
+                tempcheck = false;
+                break;
+            }
+        }
+        if (tempcheck) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean botCheckForWin(char[][] field) {
+        // returns true if someone won
+        char check = '\0';
+        boolean tempcheck = true;
+
+        // straight lines
+
+        for (int y = 0; y < width; y++) {
+            tempcheck = true;
+            check = field[0][y];
+            for (int x = 0; x < width; x++) {
+                if (field[x][y] == '\0' || !(field[x][y] == check)) {
+                    tempcheck = false;
+                    break;
+                }
+            }
+            if (tempcheck) {
+                return true;
+            }
+        }
+        for (int x = 0; x < width; x++) {
+            tempcheck = true;
+            check = field[x][0];
+            for (int y = 0; y < width; y++) {
+                if (field[x][y] == '\0' || !(field[x][y] == check)) {
+                    tempcheck = false;
+                    break;
+                }
+            }
+            if (tempcheck) {
+                return true;
+            }
+        }
+
+        // diagonals
+
+        tempcheck = true;
+        check = field[0][0];
+        for (int x = 0; x < width; x++) {
+            if (field[x][x] == '\0' || !(field[x][x] == check)) {
+                tempcheck = false;
+                break;
+            }
+        }
+        if (tempcheck) {
+            return true;
+        }
+
+        tempcheck = true;
+        check = field[0][width - 1];
+        for (int x = 0; x < width; x++) {
+            if (field[x][width - x - 1] == '\0' || !(field[x][width - 1 - x] == check)) {
                 tempcheck = false;
                 break;
             }
