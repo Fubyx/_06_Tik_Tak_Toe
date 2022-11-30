@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.control.TextField?>
 <GridPane hgap="10" vgap="10" xmlns="http://javafx.com/javafx/17.0.2-ea"
-          xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example._06_tik_tak_toe.HelloController">
+          xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example._06_tik_tak_toe.HelloApplication">
 
     <stylesheets>
         <URL value="@customButton.css"/>
@@ -31,7 +31,7 @@
 
     <TextField GridPane.rowIndex="1"  prefHeight="1000.0" prefWidth="10000000" fx:id="txt"/>
 
-    <Button text="Play" GridPane.rowIndex="2" prefHeight="1000.0" prefWidth="10000000" onAction="#startButtonClicked"/>
+    <Button text="Play" GridPane.rowIndex="2" prefHeight="1000.0" prefWidth="10000000" fx:id="startButton"/>
 
 </GridPane>
 

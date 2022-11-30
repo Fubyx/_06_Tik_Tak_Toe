@@ -1,12 +1,15 @@
 package com.example._06_tik_tak_toe;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
@@ -21,18 +24,45 @@ public class HelloApplication extends Application {
     private Button[][] field;
     private int width;
     private boolean stop = false;
+    short mode;
+    private Scene startingScene;
+    private int turn;
 
     @Override
     public void start(Stage stage) throws IOException {
+        turn = 0;
+        mode = 13;
         Label label = new Label("Insert x: ");
         label.setPrefWidth(1000.0);
         TextField text = new TextField();
         text.setPrefWidth(1000.0);
+
+        ObservableList<String> options =
+                FXCollections.observableArrayList(
+                        "PvP",
+                        "PvE",
+                        "EvP",
+                        "EvE"
+                );
+        ComboBox box = new ComboBox(options);
+        box.setPrefWidth(1000.0);
+
         EventHandler buttonPress = new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent e) {
                 try {
                     width = Integer.parseInt(text.getText());
+                    String temp = box.getSelectionModel().getSelectedItem().toString();
+                    System.out.println(temp);
+                    if(temp.equals("PvP")){
+                        mode = 0;
+                    }else if(temp.equals("PvE")){
+                        mode = 1;
+                    }else if(temp.equals("EvP")){
+                        mode = 2;
+                    }else if(temp.equals("EvE")){
+                        mode = 3;
+                    }
                     initGame(stage);
                 } catch (NumberFormatException ex) {
                     label.setText("Enter a valid Number under 20");
@@ -42,24 +72,35 @@ public class HelloApplication extends Application {
         Button button = new Button("Confirm");
         button.setOnAction(buttonPress);
         button.setPrefWidth(1000.0);
+
+        Label label1 = new Label("Gamemode: ");
+        label1.setPrefWidth(1000.0);
+
+
+
+
         GridPane gridPane = new GridPane();
         gridPane.setPadding(new Insets(20));
 
         gridPane.setVgap(10);
         gridPane.setHgap(10);
 
-        gridPane.add(label, 0, 0);
-        gridPane.add(text, 0, 1);
-        gridPane.add(button, 0, 2);
 
-        Scene scene = new Scene(gridPane, 300, 300);
-        scene.getStylesheets().add(getClass().getResource("customButton.css").toExternalForm());
+        gridPane.add(label1, 0, 0);
+        gridPane.add(box, 1,0);
+        gridPane.add(label, 0, 1, 2, 1);
 
-        stage.setScene(scene);
+        gridPane.add(text, 0, 2, 2, 1);
+        gridPane.add(button, 0, 3, 2, 1);
+
+        startingScene = new Scene(gridPane, 400, 400);
+        startingScene.getStylesheets().add(getClass().getResource("customButton.css").toExternalForm());
+
+        stage.setScene(startingScene);
 
         stage.setTitle("Tic Tac Toe");
         stage.show();
-        stage.setScene(scene);
+        stage.setScene(startingScene);
     }
 
     private void bot() {
@@ -154,40 +195,89 @@ public class HelloApplication extends Application {
         gridPane.add(winnerLabel, 0, 0, width, 1);
 
         field = new Button[width][width];
+
         EventHandler buttonPress = new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent e) {
                 if (!stop) {
+                    if(turn >= (width * width)){
+                        winnerLabel.setText("Draw");
+                        stop = true;
+                        return;
+                    }
                     if (e.getSource() instanceof Button) {
                         Button temp = (Button) e.getSource();
-                        if (temp.getText().equals("")) {
-                            if (turnOfPlayer1) {
-                                temp.setText("X");
-                                if (checkForWin()) {
-                                    winnerLabel.setText("Player X won");
-                                    stop = true;
-                                    return;
-                                }
-
-
-                                turnOfPlayer1 = !turnOfPlayer1;
-                                bot();
-                                if (checkForWin()) {
-                                    winnerLabel.setText("Player O won");
-                                    stop = true;
-                                }
-
-
-                            } else {
-                                temp.setText("O");
-                                if (checkForWin()) {
-                                    winnerLabel.setText("Player O won");
-                                    stop = true;
+                        switch (mode) {
+                            case 0 -> {
+                                if (temp.getText().equals("")) {
+                                    if (turnOfPlayer1) {
+                                        temp.setText("X");
+                                        if (checkForWin()) {
+                                            winnerLabel.setText("Player X won");
+                                            stop = true;
+                                            return;
+                                        }
+                                    } else {
+                                        temp.setText("O");
+                                        if (checkForWin()) {
+                                            winnerLabel.setText("Player O won");
+                                            stop = true;
+                                        }
+                                    }
+                                    turnOfPlayer1 = !turnOfPlayer1;
+                                    ++turn;
                                 }
                             }
-                            turnOfPlayer1 = !turnOfPlayer1;
+                            case 1 -> {
+                                if (temp.getText().equals("") && turnOfPlayer1) {
+                                    temp.setText("X");
+                                    if (checkForWin()) {
+                                        winnerLabel.setText("Player X won");
+                                        stop = true;
+                                        return;
+                                    }
+
+                                    turnOfPlayer1 = !turnOfPlayer1;
+                                    ++turn;
+                                    bot();
+                                    if (checkForWin()) {
+                                        winnerLabel.setText("Player O won");
+                                        stop = true;
+                                    }
+                                    turnOfPlayer1 = !turnOfPlayer1;
+                                    ++turn;
+                                }
+                            }
+                            case 2 -> {
+                                if (temp.getText().equals("") && !turnOfPlayer1) {
+                                    temp.setText("O");
+                                    if (checkForWin()) {
+                                        winnerLabel.setText("Player 0 won");
+                                        stop = true;
+                                        return;
+                                    }
+                                    turnOfPlayer1 = !turnOfPlayer1;
+                                    ++turn;
+                                    bot();
+                                    if (checkForWin()) {
+                                        winnerLabel.setText("Player X won");
+                                        stop = true;
+                                    }
+                                    turnOfPlayer1 = !turnOfPlayer1;
+                                    ++turn;
+                                }
+                            }
                         }
                     }
+                    if(turn >= (width * width)){
+                        winnerLabel.setText("Draw");
+                        stop = true;
+                        return;
+                    }
+                }else{
+                    stage.setScene(startingScene);
+                    stop = !stop;
+                    turn = 0;
                 }
             }
         };
@@ -211,6 +301,35 @@ public class HelloApplication extends Application {
         scene.getStylesheets().add(getClass().getResource("customButton.css").toExternalForm());
 
         stage.setScene(scene);
+
+        if(mode == 2){
+            bot();
+            if (checkForWin()) {
+                winnerLabel.setText("Player X won");
+                stop = true;
+            }
+            turnOfPlayer1 = !turnOfPlayer1;
+            ++turn;
+        }
+        for(int count = 0; mode == 3 && count < width * width; count++){
+            bot();
+            if (checkForWin()) {
+                if(turnOfPlayer1) {
+                    winnerLabel.setText("Player X won");
+                }else{
+                    winnerLabel.setText("Player O won");
+                }
+                stop = true;
+                return;
+            }
+            turnOfPlayer1 = !turnOfPlayer1;
+            ++turn;
+            if(turn >= width * width){
+                winnerLabel.setText("Draw");
+                stop = true;
+                return;
+            }
+        }
     }
 
     private boolean checkForWin() {
