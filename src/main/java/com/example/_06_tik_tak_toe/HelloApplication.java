@@ -83,7 +83,15 @@ public class HelloApplication extends Application {
                     } else {
                         botField[x][y] = 'O';
                     }
-                    int tempScore = botRecursion(botField, !turnOfPlayer1);
+                    if (botCheckForWin(botField)) {
+                        if (turnOfPlayer1) {
+                            field[x][y].setText("X");
+                        } else {
+                            field[x][y].setText("O");
+                        }
+                        return;
+                    }
+                    int tempScore = botRecursion(botField, !turnOfPlayer1, 1);
                     if (tempScore > saveBiggestRecursionScore[0]) {
                         saveBiggestRecursionScore[0] = tempScore;
                         saveBiggestRecursionScore[1] = x;
@@ -100,20 +108,29 @@ public class HelloApplication extends Application {
         }
     }
 
-    private int botRecursion(char[][] botField, boolean turn) {
+    private int botRecursion(char[][] botField, boolean turn, int depth) {
+        if (depth > 5) {
+            return 0;
+        }
         int score = 0;
+        boolean check;
         for (int y = 0; y < width; y++) {
             for (int x = 0; x < width; x++) {
                 if (botField[x][y] == '\0') {
+
                     if (turn) {
                         botField[x][y] = 'X';
                     } else {
                         botField[x][y] = 'O';
                     }
                     if (botCheckForWin(botField)) {
+                        if (depth == 1) {
+                            botField[x][y] = '\0';
+                            return -1000;
+                        }
                         score -= 1;
                     } else {
-                        score -= botRecursion(botField, !turn);
+                        score -= botRecursion(botField, !turn, depth+1);
                     }
                     botField[x][y] = '\0';
                 }
@@ -149,6 +166,7 @@ public class HelloApplication extends Application {
                                 if (checkForWin()) {
                                     winnerLabel.setText("Player X won");
                                     stop = true;
+                                    return;
                                 }
 
 
