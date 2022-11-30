@@ -52,12 +52,16 @@ public class HelloApplication extends Application {
             public void handle(ActionEvent e) {
                 try {
                     width = Integer.parseInt(text.getText());
-                    String temp = box.getSelectionModel().getSelectedItem().toString();
-                    switch (temp) {
-                        case "PvP" -> mode = 0;
-                        case "PvE" -> mode = 1;
-                        case "EvP" -> mode = 2;
-                        case "EvE" -> mode = 3;
+                    try {
+                        String temp = box.getSelectionModel().getSelectedItem().toString();
+                        switch (temp) {
+                            case "PvE" -> mode = 1;
+                            case "EvP" -> mode = 2;
+                            case "EvE" -> mode = 3;
+                            default -> mode = 0;
+                        }
+                    }catch (NullPointerException ex){
+                        mode = 0;
                     }
                     initGame(stage);
                 } catch (NumberFormatException ex) {
