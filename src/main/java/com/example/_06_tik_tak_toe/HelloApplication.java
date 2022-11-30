@@ -53,15 +53,11 @@ public class HelloApplication extends Application {
                 try {
                     width = Integer.parseInt(text.getText());
                     String temp = box.getSelectionModel().getSelectedItem().toString();
-                    System.out.println(temp);
-                    if(temp.equals("PvP")){
-                        mode = 0;
-                    }else if(temp.equals("PvE")){
-                        mode = 1;
-                    }else if(temp.equals("EvP")){
-                        mode = 2;
-                    }else if(temp.equals("EvE")){
-                        mode = 3;
+                    switch (temp) {
+                        case "PvP" -> mode = 0;
+                        case "PvE" -> mode = 1;
+                        case "EvP" -> mode = 2;
+                        case "EvE" -> mode = 3;
                     }
                     initGame(stage);
                 } catch (NumberFormatException ex) {
@@ -212,16 +208,17 @@ public class HelloApplication extends Application {
                                 if (temp.getText().equals("")) {
                                     if (turnOfPlayer1) {
                                         temp.setText("X");
-                                        if (checkForWin()) {
+                                        if (checkForWin(null)) {
                                             winnerLabel.setText("Player X won");
                                             stop = true;
                                             return;
                                         }
                                     } else {
                                         temp.setText("O");
-                                        if (checkForWin()) {
+                                        if (checkForWin(null)) {
                                             winnerLabel.setText("Player O won");
                                             stop = true;
+                                            return;
                                         }
                                     }
                                     turnOfPlayer1 = !turnOfPlayer1;
@@ -231,7 +228,7 @@ public class HelloApplication extends Application {
                             case 1 -> {
                                 if (temp.getText().equals("") && turnOfPlayer1) {
                                     temp.setText("X");
-                                    if (checkForWin()) {
+                                    if (checkForWin(null)) {
                                         winnerLabel.setText("Player X won");
                                         stop = true;
                                         return;
@@ -240,9 +237,10 @@ public class HelloApplication extends Application {
                                     turnOfPlayer1 = !turnOfPlayer1;
                                     ++turn;
                                     bot();
-                                    if (checkForWin()) {
+                                    if (checkForWin(null)) {
                                         winnerLabel.setText("Player O won");
                                         stop = true;
+                                        return;
                                     }
                                     turnOfPlayer1 = !turnOfPlayer1;
                                     ++turn;
@@ -251,7 +249,7 @@ public class HelloApplication extends Application {
                             case 2 -> {
                                 if (temp.getText().equals("") && !turnOfPlayer1) {
                                     temp.setText("O");
-                                    if (checkForWin()) {
+                                    if (checkForWin(null)) {
                                         winnerLabel.setText("Player 0 won");
                                         stop = true;
                                         return;
@@ -259,9 +257,10 @@ public class HelloApplication extends Application {
                                     turnOfPlayer1 = !turnOfPlayer1;
                                     ++turn;
                                     bot();
-                                    if (checkForWin()) {
+                                    if (checkForWin(null)) {
                                         winnerLabel.setText("Player X won");
                                         stop = true;
+                                        return;
                                     }
                                     turnOfPlayer1 = !turnOfPlayer1;
                                     ++turn;
@@ -278,6 +277,9 @@ public class HelloApplication extends Application {
                     stage.setScene(startingScene);
                     stop = !stop;
                     turn = 0;
+                    turnOfPlayer1 = true;
+                    width = 0;
+                    mode = 13;
                 }
             }
         };
@@ -304,16 +306,17 @@ public class HelloApplication extends Application {
 
         if(mode == 2){
             bot();
-            if (checkForWin()) {
+            if (checkForWin(null)) {
                 winnerLabel.setText("Player X won");
                 stop = true;
+                return;
             }
             turnOfPlayer1 = !turnOfPlayer1;
             ++turn;
         }
         for(int count = 0; mode == 3 && count < width * width; count++){
             bot();
-            if (checkForWin()) {
+            if (checkForWin(null)) {
                 if(turnOfPlayer1) {
                     winnerLabel.setText("Player X won");
                 }else{
@@ -332,8 +335,23 @@ public class HelloApplication extends Application {
         }
     }
 
-    private boolean checkForWin() {
-        // returns true if someone won
+    private boolean checkForWin(char[][] field1) {
+        if(field1 == null){
+            field1 = new char[width][width];
+            for(int y = 0; y < width; ++y){
+                for(int x = 0; x < width; ++x){
+
+                    if (field[x][y].getText().equals("")) {
+                        field1[x][y] = '\0';
+                    } else {
+                        field1[x][y] = field[x][y].getText().charAt(0);
+                    }
+                }
+            }
+        }
+
+        return botCheckForWin(field1);
+        /* returns true if someone won
         String checkString = "";
         boolean tempcheck = true;
 
@@ -393,6 +411,7 @@ public class HelloApplication extends Application {
         }
 
         return false;
+        //*/
     }
 
     private boolean botCheckForWin(char[][] field) {
@@ -401,11 +420,82 @@ public class HelloApplication extends Application {
         boolean tempcheck = true;
 
         // straight lines
+        int limit = Math.min(width, 4);
+        for(int y = 0; y < width; ++y){
+            for(int x = 0; x < width; ++x){
+                check = field[x][y];
+                if(check == '\0'){
+                    tempcheck = false;
+                    continue;
+                }
+                if(width - x >= limit) {
+                    tempcheck = true;
+                    for (int i = 0; i < limit; ++i) {
+                        if (field[x + i][y] != check) {
+                            tempcheck = false;
+                            break;
+                        }
+                    }
+                    if (tempcheck) {
+                        return true;
+                    }
+                }
+                if(width - y >= limit){
+                    tempcheck = true;
+                    for (int i = 0; i < limit; ++i) {
+                        if (field[x][y + i] != check) {
+                            tempcheck = false;
+                            break;
+                        }
+                    }
+                    if (tempcheck) {
+                        return true;
+                    }
+                }
+            }
+        }
+        //diagonals
+        for(int y = 0; y < width; ++y){
+            for(int x = 0; x < width; ++x){
+
+                check = field[x][y];
+                if(check == '\0'){
+                    tempcheck = false;
+                    continue;
+                }
+                if(width - x >= limit && width - y >= limit) {
+                    tempcheck = true;
+                    for (int i = 0; i < limit; ++i) {
+                        if (field[x + i][y + i] != check) {
+                            tempcheck = false;
+                            break;
+                        }
+                    }
+                    if (tempcheck) {
+                        return true;
+                    }
+                }
+                if (x+1 >= limit && width - y >= limit){
+                    tempcheck = true;
+                    for (int i = 0; i < limit; ++i) {
+                        if (field[x - i][y + i] != check) {
+                            tempcheck = false;
+                            break;
+                        }
+
+                    }
+                    if (tempcheck) {
+                        return true;
+                    }
+                }
+            }
+        }
+        /*
 
         for (int y = 0; y < width; y++) {
             tempcheck = true;
             check = field[0][y];
-            for (int x = 0; x < width; x++) {
+            for (int x = 0; x < (Math.min(width, 4)); x++) {
                 if (field[x][y] == '\0' || !(field[x][y] == check)) {
                     tempcheck = false;
                     break;
@@ -430,7 +520,6 @@ public class HelloApplication extends Application {
         }
 
         // diagonals
-
         tempcheck = true;
         check = field[0][0];
         for (int x = 0; x < width; x++) {
@@ -451,11 +540,31 @@ public class HelloApplication extends Application {
                 break;
             }
         }
-        if (tempcheck) {
-            return true;
+        //*/
+        if(limit == 4){
+            //squares
+            for(int y = 0; y < width-1; ++y){
+                for(int x = 0; x < width - 1; ++x){
+                    if(field[x][y] != '\0'){
+                        if((field[x][y] == field[x + 1][y]) && (field[x][y] == field[x][y + 1]) && (field[x][y] == field[x + 1][y + 1])){
+                            return true;
+                        }
+                    }
+                }
+            }
+            //diamond
+            for(int y = 0; y < width - 2; ++y){
+                for(int x = 1; x < width - 1; ++x){
+                    if(field[x][y] != '\0'){
+                        if((field[x][y] == field[x + 1][y + 1]) && (field[x][y] == field[x - 1][y + 1]) && (field[x][y] == field[x][y + 2])){
+                            return true;
+                        }
+                    }
+                }
+            }
         }
 
-        return false;
+        return tempcheck;
     }
 
 
