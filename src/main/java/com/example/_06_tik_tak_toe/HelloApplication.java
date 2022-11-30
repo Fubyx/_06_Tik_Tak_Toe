@@ -128,7 +128,7 @@ public class HelloApplication extends Application {
                         }
                         return;
                     }
-                    int tempScore = botRecursion(botField, !turnOfPlayer1, 1);
+                    int tempScore = alternateBotRecursion(botField, !turnOfPlayer1, 1);
                     if (tempScore > saveBiggestRecursionScore[0]) {
                         saveBiggestRecursionScore[0] = tempScore;
                         saveBiggestRecursionScore[1] = x;
@@ -138,11 +138,46 @@ public class HelloApplication extends Application {
                 }
             }
         }
-        if (turnOfPlayer1) {
-            field[saveBiggestRecursionScore[1]][saveBiggestRecursionScore[2]].setText("X");
-        } else {
-            field[saveBiggestRecursionScore[1]][saveBiggestRecursionScore[2]].setText("O");
+        if (!stop) {
+            if (turnOfPlayer1) {
+                field[saveBiggestRecursionScore[1]][saveBiggestRecursionScore[2]].setText("X");
+            } else {
+                field[saveBiggestRecursionScore[1]][saveBiggestRecursionScore[2]].setText("O");
+            }
         }
+    }
+
+    private int alternateBotRecursion(char[][] botField, boolean turn, int depth) {
+        if (depth > 5) {
+            return 0;
+        }
+        int score = 1;
+        for (int y = 0; y < width; y++) {
+            for (int x = 0; x < width; x++) {
+                if (botField[x][y] == '\0') {
+                    if (turn) {
+                        botField[x][y] = 'X';
+                    } else {
+                        botField[x][y] = 'O';
+                    }
+                    if (botCheckForWin(botField)) {
+                        botField[x][y] = '\0';
+                        if (depth % 2 == 1) {
+                            return -1;
+                        } else {
+                            return 1;
+                        }
+                    } else {
+                        int temp = alternateBotRecursion(botField, !turn, depth + 1);
+                        if (temp == -1 || score != 1) {
+                            score = -1;
+                        }
+                    }
+                    botField[x][y] = '\0';
+                }
+            }
+        }
+        return score;
     }
 
     private int botRecursion(char[][] botField, boolean turn, int depth) {
@@ -163,7 +198,7 @@ public class HelloApplication extends Application {
                     if (botCheckForWin(botField)) {
                         if (depth == 1) {
                             botField[x][y] = '\0';
-                            return -1000;
+                            score -= 1000;
                         }
                         score -= 1;
                     } else {
