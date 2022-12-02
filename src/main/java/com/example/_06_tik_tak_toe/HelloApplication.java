@@ -32,7 +32,7 @@ public class HelloApplication extends Application {
     public void start(Stage stage) throws IOException {
         turn = 0;
         mode = 13;
-        Label label = new Label("Insert x: ");
+        Label label = new Label("Insert x (<15): ");
         label.setPrefWidth(1000.0);
         TextField text = new TextField();
         text.setPrefWidth(1000.0);
@@ -52,7 +52,11 @@ public class HelloApplication extends Application {
             public void handle(ActionEvent e) {
                 try {
                     width = Integer.parseInt(text.getText());
+                    if (width > 14) {
+                        throw new NumberFormatException();
+                    }
                     try {
+
                         String temp = box.getSelectionModel().getSelectedItem().toString();
                         switch (temp) {
                             case "PvE" -> mode = 1;
@@ -60,12 +64,12 @@ public class HelloApplication extends Application {
                             case "EvE" -> mode = 3;
                             default -> mode = 0;
                         }
-                    }catch (NullPointerException ex){
+                    } catch (NullPointerException ex) {
                         mode = 0;
                     }
                     initGame(stage);
                 } catch (NumberFormatException ex) {
-                    label.setText("Enter a valid Number under 20");
+                    label.setText("Enter a valid Number (<15)");
                 }
             }
         };
@@ -77,8 +81,6 @@ public class HelloApplication extends Application {
         label1.setPrefWidth(1000.0);
 
 
-
-
         GridPane gridPane = new GridPane();
         gridPane.setPadding(new Insets(20));
 
@@ -87,7 +89,7 @@ public class HelloApplication extends Application {
 
 
         gridPane.add(label1, 0, 0);
-        gridPane.add(box, 1,0);
+        gridPane.add(box, 1, 0);
         gridPane.add(label, 0, 1, 2, 1);
 
         gridPane.add(text, 0, 2, 2, 1);
@@ -109,11 +111,135 @@ public class HelloApplication extends Application {
             for (int x = 0; x < width; x++) {
                 if (field[x][y].getText().equals("")) {
                     botField[x][y] = '\0';
+                    System.out.println("Test5");
                 } else {
                     botField[x][y] = field[x][y].getText().charAt(0);
                 }
             }
         }
+        int limits;
+        if (width < 7) {
+            limits = Math.min(width, 4);
+        } else {
+            limits = 5;
+        }
+        char sign;
+        // 1: check if win possible
+        if (turn >= 2 * limits - 1) {
+            if (turnOfPlayer1) {
+                sign = 'X';
+            } else {
+                sign = 'O';
+            }
+            for (int y = 0; y < width; ++y) {
+                for (int x = 0; x < width; ++x) {
+                    if (botField[x][y] == '\0') {
+                        botField[x][y] = sign;
+                        if (checkForWin(botField)) {
+                            if(turnOfPlayer1){
+                                field[x][y].setText("X");
+                            }else {
+                                field[x][y].setText("O");
+                            }
+                            return;
+                        } else {
+                            botField[x][y] = '\0';
+                        }
+                    }
+                }
+            }
+        }
+        if (turn >= 2 * limits - 3) {
+            if (turnOfPlayer1) {
+                sign = 'O';
+            } else {
+                sign = 'X';
+            }
+            for (int y = 0; y < width; ++y) {
+                for (int x = 0; x < width; ++x) {
+                    if (botField[x][y] == '\0') {
+                        botField[x][y] = sign;
+                        if (checkForWin(botField)) {
+                            if(turnOfPlayer1){
+                                field[x][y].setText("X");
+                            }else {
+                                field[x][y].setText("O");
+                            }
+                            return;
+                        } else {
+                            botField[x][y] = '\0';
+                        }
+                    }
+                }
+            }
+        }
+
+        if (turnOfPlayer1) {
+            sign = 'X';
+        } else {
+            sign = 'O';
+        }
+
+        int [] highest = new int[3];
+        highest[0] = 0;
+        highest[1] = 0;
+        highest[2] = 0;
+        for(int y = 0; y < width; ++y){
+            for(int x = 0; x < width; ++x){
+                if(botField[x][y] == '\0') {
+                    botField[x][y] = sign;
+                    int score = newBotRec(botField, turnOfPlayer1, 0);
+                    if(score < 0){
+                        score = score * -1;
+                    }
+                    System.out.println("x " + x + " y " + y + " s " + score);
+                    if(highest[0] != 0 && score >= highest[0]){
+
+                        highest[0] = score;
+                        highest[1] = x;
+                        highest[2] = y;
+                    }else if(score > 0){
+                        System.out.println("x " + x + " y " + y + " s " + score);
+                        highest[0] = score;
+                        highest[1] = x;
+                        highest[2] = y;
+                    }
+                }
+            }
+        }
+        if(field[highest[1]][highest[2]].getText().equals("")) {
+            System.out.println("Test");
+            if (turnOfPlayer1) {
+                field[highest[1]][highest[2]].setText("X");
+            } else {
+                field[highest[1]][highest[2]].setText("O");
+            }
+        }else{
+            if(field[1][1].getText().equals("")) {
+                System.out.println("Test2");
+                if (turnOfPlayer1) {
+                    field[1][1].setText("X");
+                } else {
+                    field[1][1].setText("O");
+                }
+            }else{
+                System.out.println("Test3"); //Fehler irgendwo do
+                for(int y = 0; y < width; ++y){
+                    for(int x = 0; x < width; ++x){
+                        if(field[x][y].getText().equals("")){
+                            System.out.println("Test4");
+                            if (turnOfPlayer1) {
+                                field[x][y].setText("X");
+                            } else {
+                                field[x][y].setText("O");
+                            }
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+        /*
         int[] saveBiggestRecursionScore = new int[3];
         saveBiggestRecursionScore[0] = -100000;
         for (int y = 0; y < width; y++) {
@@ -147,6 +273,7 @@ public class HelloApplication extends Application {
         } else {
             field[saveBiggestRecursionScore[1]][saveBiggestRecursionScore[2]].setText("O");
         }
+         */
     }
 
     private int botRecursion(char[][] botField, boolean turn, int depth) {
@@ -171,7 +298,7 @@ public class HelloApplication extends Application {
                         }
                         score -= 1;
                     } else {
-                        score -= botRecursion(botField, !turn, depth+1);
+                        score -= botRecursion(botField, !turn, depth + 1);
                     }
                     botField[x][y] = '\0';
                 }
@@ -180,9 +307,84 @@ public class HelloApplication extends Application {
         return score;
     }
 
+
+    private int newBotRec(char[][] botField, boolean p1, int depth) {
+        int limits;
+        if (width < 7) {
+            limits = Math.min(width, 4);
+        } else {
+            limits = 5;
+        }
+        char sign;
+        // 1: check if win possible
+        if (turn >= 2 * limits - 1) {
+            if (p1) {
+                sign = 'X';
+            } else {
+                sign = 'O';
+            }
+            for (int y = 0; y < width; ++y) {
+                for (int x = 0; x < width; ++x) {
+                    if (botField[x][y] == '\0') {
+                        botField[x][y] = sign;
+                        if (checkForWin(botField)) {
+                            return (int) Math.pow(10, 5 - depth);
+                        } else {
+                            botField[x][y] = '\0';
+                        }
+                    }
+                }
+            }
+        }
+        if (turn >= 2 * limits - 3) {
+            if (p1) {
+                sign = 'O';
+            } else {
+                sign = 'X';
+            }
+            for (int y = 0; y < width; ++y) {
+                for (int x = 0; x < width; ++x) {
+                    if (botField[x][y] == '\0') {
+                        botField[x][y] = sign;
+                        if (checkForWin(botField)) {
+                            return (int)(-1 * Math.pow(10, 5 - depth));
+                        } else {
+                            botField[x][y] = '\0';
+                        }
+                    }
+                }
+            }
+        }
+        if(depth > 6 || (turn + depth >= width * width)){
+            return 0;
+        }
+
+        // stopped -----------------------------------------------------------------------------
+        if (p1) {
+            sign = 'O';
+        } else {
+            sign = 'X';
+        }
+        int res = 0;
+        for(int y = 0; y < width; ++y){
+            for(int x = 0; x < width; ++x){
+                if(botField[x][y] == '\0'){
+                    botField[x][y] = sign;
+                    res += newBotRec(botField, !p1, depth + 1);
+                    botField[x][y] = '\0';
+                    if(res <  1 + (-2 * Math.pow(10, 5 - depth+1))){
+                        return (int)(-1 * Math.pow(10, 5 - depth));
+                    }
+                }
+            }
+        }
+        return res;
+    }
+
     private void initGame(Stage stage) {
 
         GridPane gridPane = new GridPane();
+        turnOfPlayer1 = true;
 
 
         //gridPane.setVgap(10);
@@ -200,7 +402,7 @@ public class HelloApplication extends Application {
             @Override
             public void handle(ActionEvent e) {
                 if (!stop) {
-                    if(turn >= (width * width)){
+                    if (turn >= (width * width)) {
                         winnerLabel.setText("Draw");
                         stop = true;
                         return;
@@ -272,12 +474,12 @@ public class HelloApplication extends Application {
                             }
                         }
                     }
-                    if(turn >= (width * width)){
+                    if (turn >= (width * width)) {
                         winnerLabel.setText("Draw");
                         stop = true;
                         return;
                     }
-                }else{
+                } else {
                     stage.setScene(startingScene);
                     stop = !stop;
                     turn = 0;
@@ -303,12 +505,17 @@ public class HelloApplication extends Application {
         // using instance method for directly adding the node with columnspan and rowspan
         // gridPane.add(someButton,0,2,TWO_COLUMN_SPAN,1);
 
-        Scene scene = new Scene(gridPane, 300, 300);
+        Scene scene;
+        if (width < 7) {
+            scene = new Scene(gridPane, 300, 300);
+        } else {
+            scene = new Scene(gridPane, (int) ((width - 5) / 2) * 100 + 300, (int) ((width - 5) / 2) * 100 + 300);
+        }
         scene.getStylesheets().add(getClass().getResource("customButton.css").toExternalForm());
 
         stage.setScene(scene);
 
-        if(mode == 2){
+        if (mode == 2) {
             bot();
             if (checkForWin(null)) {
                 winnerLabel.setText("Player X won");
@@ -318,12 +525,12 @@ public class HelloApplication extends Application {
             turnOfPlayer1 = !turnOfPlayer1;
             ++turn;
         }
-        for(int count = 0; mode == 3 && count < width * width; count++){
+        for (int count = 0; mode == 3 && count < width * width; count++) {
             bot();
             if (checkForWin(null)) {
-                if(turnOfPlayer1) {
+                if (turnOfPlayer1) {
                     winnerLabel.setText("Player X won");
-                }else{
+                } else {
                     winnerLabel.setText("Player O won");
                 }
                 stop = true;
@@ -331,7 +538,7 @@ public class HelloApplication extends Application {
             }
             turnOfPlayer1 = !turnOfPlayer1;
             ++turn;
-            if(turn >= width * width){
+            if (turn >= width * width) {
                 winnerLabel.setText("Draw");
                 stop = true;
                 return;
@@ -340,10 +547,10 @@ public class HelloApplication extends Application {
     }
 
     private boolean checkForWin(char[][] field1) {
-        if(field1 == null){
+        if (field1 == null) {
             field1 = new char[width][width];
-            for(int y = 0; y < width; ++y){
-                for(int x = 0; x < width; ++x){
+            for (int y = 0; y < width; ++y) {
+                for (int x = 0; x < width; ++x) {
 
                     if (field[x][y].getText().equals("")) {
                         field1[x][y] = '\0';
@@ -424,15 +631,20 @@ public class HelloApplication extends Application {
         boolean tempcheck = true;
 
         // straight lines
-        int limit = Math.min(width, 4);
-        for(int y = 0; y < width; ++y){
-            for(int x = 0; x < width; ++x){
+        int limit;
+        if (width < 7) {
+            limit = Math.min(width, 4);
+        } else {
+            limit = 5;
+        }
+        for (int y = 0; y < width; ++y) {
+            for (int x = 0; x < width; ++x) {
                 check = field[x][y];
-                if(check == '\0'){
+                if (check == '\0') {
                     tempcheck = false;
                     continue;
                 }
-                if(width - x >= limit) {
+                if (width - x >= limit) {
                     tempcheck = true;
                     for (int i = 0; i < limit; ++i) {
                         if (field[x + i][y] != check) {
@@ -444,7 +656,7 @@ public class HelloApplication extends Application {
                         return true;
                     }
                 }
-                if(width - y >= limit){
+                if (width - y >= limit) {
                     tempcheck = true;
                     for (int i = 0; i < limit; ++i) {
                         if (field[x][y + i] != check) {
@@ -459,15 +671,15 @@ public class HelloApplication extends Application {
             }
         }
         //diagonals
-        for(int y = 0; y < width; ++y){
-            for(int x = 0; x < width; ++x){
+        for (int y = 0; y < width; ++y) {
+            for (int x = 0; x < width; ++x) {
 
                 check = field[x][y];
-                if(check == '\0'){
+                if (check == '\0') {
                     tempcheck = false;
                     continue;
                 }
-                if(width - x >= limit && width - y >= limit) {
+                if (width - x >= limit && width - y >= limit) {
                     tempcheck = true;
                     for (int i = 0; i < limit; ++i) {
                         if (field[x + i][y + i] != check) {
@@ -479,7 +691,7 @@ public class HelloApplication extends Application {
                         return true;
                     }
                 }
-                if (x+1 >= limit && width - y >= limit){
+                if (x + 1 >= limit && width - y >= limit) {
                     tempcheck = true;
                     for (int i = 0; i < limit; ++i) {
                         if (field[x - i][y + i] != check) {
@@ -545,22 +757,33 @@ public class HelloApplication extends Application {
             }
         }
         //*/
-        if(limit == 4){
+        if (limit == 4) {
             //squares
-            for(int y = 0; y < width-1; ++y){
-                for(int x = 0; x < width - 1; ++x){
-                    if(field[x][y] != '\0'){
-                        if((field[x][y] == field[x + 1][y]) && (field[x][y] == field[x][y + 1]) && (field[x][y] == field[x + 1][y + 1])){
+            for (int y = 0; y < width - 1; ++y) {
+                for (int x = 0; x < width - 1; ++x) {
+                    if (field[x][y] != '\0') {
+                        if ((field[x][y] == field[x + 1][y]) && (field[x][y] == field[x][y + 1]) && (field[x][y] == field[x + 1][y + 1])) {
                             return true;
                         }
                     }
                 }
             }
             //diamond
-            for(int y = 0; y < width - 2; ++y){
-                for(int x = 1; x < width - 1; ++x){
-                    if(field[x][y] != '\0'){
-                        if((field[x][y] == field[x + 1][y + 1]) && (field[x][y] == field[x - 1][y + 1]) && (field[x][y] == field[x][y + 2])){
+            for (int y = 0; y < width - 2; ++y) {
+                for (int x = 1; x < width - 1; ++x) {
+                    if (field[x][y] != '\0') {
+                        if ((field[x][y] == field[x + 1][y + 1]) && (field[x][y] == field[x - 1][y + 1]) && (field[x][y] == field[x][y + 2])) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        } else if (limit == 5) {
+            //cross
+            for (int y = 0; y < width - 2; ++y) {
+                for (int x = 1; x < width - 1; ++x) {
+                    if (field[x][y] != '\0') {
+                        if ((field[x][y] == field[x][y + 1]) && (field[x][y] == field[x + 1][y + 1]) && (field[x][y] == field[x - 1][y + 1]) && (field[x][y] == field[x][y + 2])) {
                             return true;
                         }
                     }
