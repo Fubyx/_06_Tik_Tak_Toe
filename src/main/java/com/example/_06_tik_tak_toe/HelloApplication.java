@@ -1,6 +1,7 @@
 package com.example._06_tik_tak_toe;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -15,9 +16,13 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
+import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.Random;
 
-public class HelloApplication extends Application {
+import javax.swing.*;
+
+public class HelloApplication extends Application implements ActionListener {
 
 
     private boolean turnOfPlayer1 = true;
@@ -27,6 +32,11 @@ public class HelloApplication extends Application {
     short mode;
     private Scene startingScene;
     private int turn;
+
+    private Timer botVBotTimer;
+    private Label winnerLabel;
+    private Button [] toBot;
+    private boolean []toBotStart;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -42,7 +52,9 @@ public class HelloApplication extends Application {
                         "PvP",
                         "PvE",
                         "EvP",
-                        "EvE"
+                        "EvE",
+                        "P+EvE",
+                        "P+EvP+E"
                 );
         ComboBox box = new ComboBox(options);
         box.setPrefWidth(1000.0);
@@ -62,6 +74,8 @@ public class HelloApplication extends Application {
                             case "PvE" -> mode = 1;
                             case "EvP" -> mode = 2;
                             case "EvE" -> mode = 3;
+                            case "P+EvE" -> mode = 4;
+                            case "P+EvP+E" -> mode = 5;
                             default -> mode = 0;
                         }
                     } catch (NullPointerException ex) {
@@ -111,7 +125,6 @@ public class HelloApplication extends Application {
             for (int x = 0; x < width; x++) {
                 if (field[x][y].getText().equals("")) {
                     botField[x][y] = '\0';
-                    System.out.println("Test5");
                 } else {
                     botField[x][y] = field[x][y].getText().charAt(0);
                 }
@@ -136,10 +149,30 @@ public class HelloApplication extends Application {
                     if (botField[x][y] == '\0') {
                         botField[x][y] = sign;
                         if (checkForWin(botField)) {
-                            if(turnOfPlayer1){
-                                field[x][y].setText("X");
-                            }else {
-                                field[x][y].setText("O");
+                            int finalX = x;
+                            int finalY = y;
+                            if (turnOfPlayer1) {
+                                if(Thread.currentThread().getName().equals("AWT-EventQueue-0")){
+                                    Platform.runLater(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            field[finalX][finalY].setText("X");
+                                        }
+                                    });
+                                }else{
+                                    field[finalX][finalY].setText("X");
+                                }
+                            } else {
+                                if(Thread.currentThread().getName().equals("AWT-EventQueue-0")){
+                                    Platform.runLater(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            field[finalX][finalY].setText("O");
+                                        }
+                                    });
+                                }else{
+                                    field[finalX][finalY].setText("O");
+                                }
                             }
                             return;
                         } else {
@@ -149,6 +182,7 @@ public class HelloApplication extends Application {
                 }
             }
         }
+
         if (turn >= 2 * limits - 3) {
             if (turnOfPlayer1) {
                 sign = 'O';
@@ -160,10 +194,30 @@ public class HelloApplication extends Application {
                     if (botField[x][y] == '\0') {
                         botField[x][y] = sign;
                         if (checkForWin(botField)) {
-                            if(turnOfPlayer1){
-                                field[x][y].setText("X");
-                            }else {
-                                field[x][y].setText("O");
+                            int finalX = x;
+                            int finalY = y;
+                            if (turnOfPlayer1) {
+                                if(Thread.currentThread().getName().equals("AWT-EventQueue-0")){
+                                    Platform.runLater(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            field[finalX][finalY].setText("X");
+                                        }
+                                    });
+                                }else{
+                                    field[finalX][finalY].setText("X");
+                                }
+                            } else {
+                                if(Thread.currentThread().getName().equals("AWT-EventQueue-0")){
+                                    Platform.runLater(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            field[finalX][finalY].setText("O");
+                                        }
+                                    });
+                                }else{
+                                    field[finalX][finalY].setText("O");
+                                }
                             }
                             return;
                         } else {
@@ -180,58 +234,112 @@ public class HelloApplication extends Application {
             sign = 'O';
         }
 
-        int [] highest = new int[3];
+        int[] highest = new int[3];
         highest[0] = 0;
         highest[1] = 0;
         highest[2] = 0;
-        for(int y = 0; y < width; ++y){
-            for(int x = 0; x < width; ++x){
-                if(botField[x][y] == '\0') {
+        for (int y = 0; y < width; ++y) {
+            for (int x = 0; x < width; ++x) {
+                //System.out.print("t");
+                if (botField[x][y] == '\0') {
                     botField[x][y] = sign;
                     int score = newBotRec(botField, turnOfPlayer1, 0);
-                    if(score < 0){
+                    //System.out.println(score);
+                    /*if (score < 0) {
                         score = score * -1;
-                    }
-                    System.out.println("x " + x + " y " + y + " s " + score);
-                    if(highest[0] != 0 && score >= highest[0]){
+                    }*/
+                    if (highest[0] != 0 && score >= highest[0]) {
 
                         highest[0] = score;
                         highest[1] = x;
                         highest[2] = y;
-                    }else if(score > 0){
-                        System.out.println("x " + x + " y " + y + " s " + score);
+                    } else if (score > 0) {
                         highest[0] = score;
                         highest[1] = x;
                         highest[2] = y;
                     }
+                    botField[x][y] = '\0';
                 }
             }
         }
-        if(field[highest[1]][highest[2]].getText().equals("")) {
-            System.out.println("Test");
+        if (field[highest[1]][highest[2]].getText().equals("")) {
             if (turnOfPlayer1) {
-                field[highest[1]][highest[2]].setText("X");
+                if(Thread.currentThread().getName().equals("AWT-EventQueue-0")){
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            field[highest[1]][highest[2]].setText("X");
+                        }
+                    });
+                }else{
+                    field[highest[1]][highest[2]].setText("X");
+                }
             } else {
-                field[highest[1]][highest[2]].setText("O");
+                if(Thread.currentThread().getName().equals("AWT-EventQueue-0")){
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            field[highest[1]][highest[2]].setText("O");
+                        }
+                    });
+                }else{
+                    field[highest[1]][highest[2]].setText("O");
+                }
             }
-        }else{
-            if(field[1][1].getText().equals("")) {
-                System.out.println("Test2");
+            return;
+        } else {
+            if (field[1][1].getText().equals("")) {
                 if (turnOfPlayer1) {
-                    field[1][1].setText("X");
+                    if(Thread.currentThread().getName().equals("AWT-EventQueue-0")){
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                field[1][1].setText("X");
+                            }
+                        });
+                    }else{
+                        field[1][1].setText("X");
+                    }
                 } else {
-                    field[1][1].setText("O");
+                    if(Thread.currentThread().getName().equals("AWT-EventQueue-0")){
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                field[1][1].setText("O");
+                            }
+                        });
+                    }else{
+                        field[1][1].setText("O");
+                    }
                 }
             }else{
-                System.out.println("Test3"); //Fehler irgendwo do
-                for(int y = 0; y < width; ++y){
-                    for(int x = 0; x < width; ++x){
-                        if(field[x][y].getText().equals("")){
-                            System.out.println("Test4");
+                for (int y = 0; y < width; ++y) {
+                    for (int x = 0; x < width; ++x) {
+                        if (field[x][y].getText().equals("")) {
+                            int finalY = y;
+                            int finalX = x;
                             if (turnOfPlayer1) {
-                                field[x][y].setText("X");
+                                if(Thread.currentThread().getName().equals("AWT-EventQueue-0")){
+                                    Platform.runLater(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            field[finalX][finalY].setText("X");
+                                        }
+                                    });
+                                }else{
+                                    field[finalX][finalY].setText("X");
+                                }
                             } else {
-                                field[x][y].setText("O");
+                                if(Thread.currentThread().getName().equals("AWT-EventQueue-0")){
+                                    Platform.runLater(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            field[finalX][finalY].setText("O");
+                                        }
+                                    });
+                                }else{
+                                    field[finalX][finalY].setText("O");
+                                }
                             }
                             return;
                         }
@@ -239,6 +347,9 @@ public class HelloApplication extends Application {
                 }
             }
         }
+
+
+
         /*
         int[] saveBiggestRecursionScore = new int[3];
         saveBiggestRecursionScore[0] = -100000;
@@ -347,7 +458,7 @@ public class HelloApplication extends Application {
                     if (botField[x][y] == '\0') {
                         botField[x][y] = sign;
                         if (checkForWin(botField)) {
-                            return (int)(-1 * Math.pow(10, 5 - depth));
+                            return (int) (-1 * Math.pow(10, 5 - depth));
                         } else {
                             botField[x][y] = '\0';
                         }
@@ -355,7 +466,7 @@ public class HelloApplication extends Application {
                 }
             }
         }
-        if(depth > 6 || (turn + depth >= width * width)){
+        if (depth > 6 || (turn + depth >= width * width)) {
             return 0;
         }
 
@@ -366,14 +477,14 @@ public class HelloApplication extends Application {
             sign = 'X';
         }
         int res = 0;
-        for(int y = 0; y < width; ++y){
-            for(int x = 0; x < width; ++x){
-                if(botField[x][y] == '\0'){
+        for (int y = 0; y < width; ++y) {
+            for (int x = 0; x < width; ++x) {
+                if (botField[x][y] == '\0') {
                     botField[x][y] = sign;
                     res += newBotRec(botField, !p1, depth + 1);
                     botField[x][y] = '\0';
-                    if(res <  1 + (-2 * Math.pow(10, 5 - depth+1))){
-                        return (int)(-1 * Math.pow(10, 5 - depth));
+                    if (res < 1 + (-2 * Math.pow(10, 5 - depth + 1))) {
+                        return (int) (-1 * Math.pow(10, 5 - depth));
                     }
                 }
             }
@@ -392,9 +503,9 @@ public class HelloApplication extends Application {
         gridPane.setPadding(new Insets(20));
         gridPane.setAlignment(Pos.CENTER);
 
-        Label winnerLabel = new Label("");
+        winnerLabel = new Label("");
         winnerLabel.setPrefWidth(1000);
-        gridPane.add(winnerLabel, 0, 0, width, 1);
+        winnerLabel.setPrefHeight(1000);
 
         field = new Button[width][width];
 
@@ -407,10 +518,41 @@ public class HelloApplication extends Application {
                         stop = true;
                         return;
                     }
-                    if (e.getSource() instanceof Button) {
-                        Button temp = (Button) e.getSource();
+                    if (e.getSource() instanceof Button temp) {
+                        if((mode == 4 || mode == 5) && temp.equals(toBot[0])){
+                            if(mode == 4){
+                                botVBotTimer.start();
+                                toBotStart[0] = true;
+                                return;
+                            }else{
+                                toBotStart[0] = true;
+                                if(toBotStart[1]){
+                                    botVBotTimer.start();
+                                    return;
+                                }else{
+                                    if(!turnOfPlayer1){
+                                        actionPerformed(null);
+                                    }
+                                    return;
+                                }
+                            }
+                        }else if(mode == 5 && temp.equals(toBot[1])){
+                            toBotStart[1] = true;
+                            if(toBotStart[0]){
+                                botVBotTimer.start();
+                                return;
+                            }else{
+                                if(turnOfPlayer1){
+                                    actionPerformed(null);
+                                }
+                                return;
+                            }
+                        }
+                        int effect = 13;
                         switch (mode) {
                             case 0 -> {
+                                effect = 0;
+                                /*
                                 if (temp.getText().equals("")) {
                                     if (turnOfPlayer1) {
                                         temp.setText("X");
@@ -429,9 +571,11 @@ public class HelloApplication extends Application {
                                     }
                                     turnOfPlayer1 = !turnOfPlayer1;
                                     ++turn;
-                                }
+                                }//*/
                             }
                             case 1 -> {
+                                effect = 1;
+                                /*
                                 if (temp.getText().equals("") && turnOfPlayer1) {
                                     temp.setText("X");
                                     if (checkForWin(null)) {
@@ -450,9 +594,11 @@ public class HelloApplication extends Application {
                                     }
                                     turnOfPlayer1 = !turnOfPlayer1;
                                     ++turn;
-                                }
+                                }//*/
                             }
                             case 2 -> {
+                                effect = 2;
+                                /*
                                 if (temp.getText().equals("") && !turnOfPlayer1) {
                                     temp.setText("O");
                                     if (checkForWin(null)) {
@@ -465,6 +611,104 @@ public class HelloApplication extends Application {
                                     bot();
                                     if (checkForWin(null)) {
                                         winnerLabel.setText("Player X won");
+                                        stop = true;
+                                        return;
+                                    }
+                                    turnOfPlayer1 = !turnOfPlayer1;
+                                    ++turn;
+                                }//*/
+                            }
+                            case 4 -> {
+                                if(!toBotStart[0]) {
+                                    effect = 1;
+                                }
+                                /*
+                                if (temp.getText().equals("") && turnOfPlayer1 && !toBotStart[0]) {
+                                    temp.setText("X");
+                                    if (checkForWin(null)) {
+                                        winnerLabel.setText("Player X won");
+                                        stop = true;
+                                        return;
+                                    }
+
+                                    turnOfPlayer1 = !turnOfPlayer1;
+                                    ++turn;
+                                    bot();
+                                    if (checkForWin(null)) {
+                                        winnerLabel.setText("Player O won");
+                                        stop = true;
+                                        return;
+                                    }
+                                    turnOfPlayer1 = !turnOfPlayer1;
+                                    ++turn;
+                                }//*/
+                            }
+                            case 5 -> {
+                                if(!toBotStart[0] && !toBotStart[1]){
+                                    effect = 0;
+                                }else if(!toBotStart[0]){
+                                    effect = 2;
+                                }else if(!toBotStart[1]){
+                                    effect = 1;
+                                }
+                            }
+                        }
+                        switch(effect){
+                            case 0 -> {
+                                if (temp.getText().equals("")) {
+                                    if (turnOfPlayer1) {
+                                        temp.setText("X");
+                                        if (checkForWin(null)) {
+                                            winnerLabel.setText("X won");
+                                            stop = true;
+                                            return;
+                                        }
+                                    } else {
+                                        temp.setText("O");
+                                        if (checkForWin(null)) {
+                                            winnerLabel.setText("O won");
+                                            stop = true;
+                                            return;
+                                        }
+                                    }
+                                    turnOfPlayer1 = !turnOfPlayer1;
+                                    ++turn;
+                                }
+                            }
+                            case 1 -> {
+                                if (temp.getText().equals("") && turnOfPlayer1) {
+                                    temp.setText("X");
+                                    if (checkForWin(null)) {
+                                        winnerLabel.setText("X won");
+                                        stop = true;
+                                        return;
+                                    }
+
+                                    turnOfPlayer1 = !turnOfPlayer1;
+                                    ++turn;
+                                    bot();
+                                    if (checkForWin(null)) {
+                                        winnerLabel.setText("O won");
+                                        stop = true;
+                                        return;
+                                    }
+                                    turnOfPlayer1 = !turnOfPlayer1;
+                                    ++turn;
+                                }
+                            }
+                            case 2 -> {
+                                if (temp.getText().equals("") && !turnOfPlayer1) {
+                                    temp.setText("O");
+                                    if (checkForWin(null)) {
+                                        winnerLabel.setText("0 won");
+                                        stop = true;
+                                        return;
+                                    }
+                                    turnOfPlayer1 = !turnOfPlayer1;
+                                    ++turn;
+                                    bot();
+                                    if (checkForWin(null)) {
+                                        winnerLabel.setText("X won");
                                         stop = true;
                                         return;
                                     }
@@ -486,9 +730,52 @@ public class HelloApplication extends Application {
                     turnOfPlayer1 = true;
                     width = 0;
                     mode = 13;
+                    if(botVBotTimer != null) {
+                        botVBotTimer.stop();
+                    }
                 }
             }
         };
+
+        if(mode == 4 || mode == 5) {
+            if(mode == 4){
+                gridPane.add(winnerLabel, 0, 0, width - 1, 1);
+                toBot = new Button[1];
+                toBotStart = new boolean[1];
+                toBot[0] = new Button();
+                toBot[0].setPrefWidth(1000);
+                toBot[0].setPrefHeight(1000);
+                toBot[0].setOnAction(buttonPress);
+                toBot[0].setStyle("-fx-background-color: #ff0000; ");
+                gridPane.add(toBot[0], width - 1, 0);
+                toBotStart[0] = false;
+                toBot[0].setText("A");
+            }else{
+                gridPane.add(winnerLabel, 1, 0, width - 2, 1);
+                toBot = new Button[2];
+                toBotStart = new boolean[2];
+
+                toBot[0] = new Button();
+                toBot[0].setPrefWidth(1000);
+                toBot[0].setPrefHeight(1000);
+                toBot[0].setOnAction(buttonPress);
+                toBot[0].setStyle("-fx-background-color: #ff0000; ");
+                gridPane.add(toBot[0], width - 1, 0);
+                toBotStart[0] = false;
+
+                toBot[1] = new Button();
+                toBot[1].setPrefWidth(1000);
+                toBot[1].setPrefHeight(1000);
+                toBot[1].setOnAction(buttonPress);
+                toBot[1].setStyle("-fx-background-color: #ff0000; ");
+                toBot[1].setText("A1");
+                gridPane.add(toBot[1], 0, 0);
+                toBotStart[1] = false;
+                toBot[0].setText("A2");
+            }
+        }else{
+            gridPane.add(winnerLabel, 0, 0, width, 1);
+        }
 
         for (int y = 0; y < width; y++) {
             for (int x = 0; x < width; x++) {
@@ -515,34 +802,38 @@ public class HelloApplication extends Application {
 
         stage.setScene(scene);
 
-        if (mode == 2) {
-            bot();
-            if (checkForWin(null)) {
-                winnerLabel.setText("Player X won");
-                stop = true;
-                return;
-            }
+        if (mode == 2 || mode == 3) {
+            //bot();
+            int pos = new Random().nextInt(width * width);
+            field[pos%width][(int)(pos/width)].setText("X");
             turnOfPlayer1 = !turnOfPlayer1;
             ++turn;
         }
-        for (int count = 0; mode == 3 && count < width * width; count++) {
-            bot();
-            if (checkForWin(null)) {
-                if (turnOfPlayer1) {
-                    winnerLabel.setText("Player X won");
-                } else {
-                    winnerLabel.setText("Player O won");
+        if(mode == 3 || mode == 4 || mode == 5) {
+            botVBotTimer = new Timer(1000, this);
+            if(mode == 3) {
+                botVBotTimer.start();
+            }
+            /*
+            for (int count = 0; count < width * width; count++) {
+                bot();
+                if (checkForWin(null)) {
+                    if (turnOfPlayer1) {
+                        winnerLabel.setText("Player X won");
+                    } else {
+                        winnerLabel.setText("Player O won");
+                    }
+                    stop = true;
+                    return;
                 }
-                stop = true;
-                return;
-            }
-            turnOfPlayer1 = !turnOfPlayer1;
-            ++turn;
-            if (turn >= width * width) {
-                winnerLabel.setText("Draw");
-                stop = true;
-                return;
-            }
+                turnOfPlayer1 = !turnOfPlayer1;
+                ++turn;
+                if (turn >= width * width) {
+                    winnerLabel.setText("Draw");
+                    stop = true;
+                    return;
+                }
+            }*/
         }
     }
 
@@ -560,7 +851,6 @@ public class HelloApplication extends Application {
                 }
             }
         }
-
         return botCheckForWin(field1);
         /* returns true if someone won
         String checkString = "";
@@ -673,7 +963,6 @@ public class HelloApplication extends Application {
         //diagonals
         for (int y = 0; y < width; ++y) {
             for (int x = 0; x < width; ++x) {
-
                 check = field[x][y];
                 if (check == '\0') {
                     tempcheck = false;
@@ -797,5 +1086,44 @@ public class HelloApplication extends Application {
 
     public static void main(String[] args) {
         launch();
+    }
+
+    @Override
+    public void actionPerformed(java.awt.event.ActionEvent e) {
+        if(turn >= width * width){
+            return;
+        }
+        bot();
+        if (checkForWin(null)) {
+            if (turnOfPlayer1) {
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        winnerLabel.setText("X won");
+                    }
+                });
+            } else {
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        winnerLabel.setText("O won");
+                    }
+                });
+            }
+            stop = true;
+            return;
+        }
+        turnOfPlayer1 = !turnOfPlayer1;
+        ++turn;
+        if (turn >= width * width) {
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    winnerLabel.setText("Draw");
+                }
+            });
+            stop = true;
+            return;
+        }
     }
 }

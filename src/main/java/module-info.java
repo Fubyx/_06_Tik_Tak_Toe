@@ -1,6 +1,7 @@
 module com.example._06_tik_tak_toe {
     requires javafx.controls;
     requires javafx.fxml;
+    requires java.desktop;
 
 
     opens com.example._06_tik_tak_toe to javafx.fxml;
