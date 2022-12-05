@@ -1,5 +1,7 @@
 package com.example._06_tik_tak_toe;
 
+import javafx.animation.Animation;
+import javafx.animation.RotateTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -14,7 +16,9 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -37,9 +41,12 @@ public class HelloApplication extends Application implements ActionListener {
     private Label winnerLabel;
     private Button[] toBot;
     private boolean[] toBotStart;
+    private RotateTransition [][]displayWin;
+    private boolean decisiveCheck;
 
     @Override
     public void start(Stage stage) throws IOException {
+        decisiveCheck = false;
         turn = 0;
         mode = 13;
         Label label = new Label("Insert x (<15): ");
@@ -623,6 +630,8 @@ public class HelloApplication extends Application implements ActionListener {
 
         field = new Button[width][width];
 
+        displayWin = new RotateTransition[width][width];
+
         EventHandler buttonPress = new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent e) {
@@ -770,6 +779,7 @@ public class HelloApplication extends Application implements ActionListener {
                         switch (effect) {
                             case 0 -> {
                                 if (temp.getText().equals("")) {
+                                    decisiveCheck = true;
                                     if (turnOfPlayer1) {
                                         temp.setText("X");
                                         if (checkForWin(null)) {
@@ -785,6 +795,7 @@ public class HelloApplication extends Application implements ActionListener {
                                             return;
                                         }
                                     }
+                                    decisiveCheck = false;
                                     turnOfPlayer1 = !turnOfPlayer1;
                                     ++turn;
                                 }
@@ -792,21 +803,25 @@ public class HelloApplication extends Application implements ActionListener {
                             case 1 -> {
                                 if (temp.getText().equals("") && turnOfPlayer1) {
                                     temp.setText("X");
+                                    decisiveCheck = true;
                                     if (checkForWin(null)) {
                                         winnerLabel.setText("X won");
                                         stop = true;
                                         return;
                                     }
-
+                                    decisiveCheck = false;
                                     turnOfPlayer1 = !turnOfPlayer1;
                                     ++turn;
+
                                     minimaxBot();
 
+                                    decisiveCheck = true;
                                     if (checkForWin(null)) {
                                         winnerLabel.setText("O won");
                                         stop = true;
                                         return;
                                     }
+                                    decisiveCheck = false;
                                     turnOfPlayer1 = !turnOfPlayer1;
                                     ++turn;
                                 }
@@ -814,20 +829,24 @@ public class HelloApplication extends Application implements ActionListener {
                             case 2 -> {
                                 if (temp.getText().equals("") && !turnOfPlayer1) {
                                     temp.setText("O");
+                                    decisiveCheck = true;
                                     if (checkForWin(null)) {
                                         winnerLabel.setText("0 won");
                                         stop = true;
                                         return;
                                     }
+                                    decisiveCheck = false;
                                     turnOfPlayer1 = !turnOfPlayer1;
                                     ++turn;
                                     minimaxBot();
 
+                                    decisiveCheck = true;
                                     if (checkForWin(null)) {
                                         winnerLabel.setText("X won");
                                         stop = true;
                                         return;
                                     }
+                                    decisiveCheck = false;
                                     turnOfPlayer1 = !turnOfPlayer1;
                                     ++turn;
                                 }
@@ -841,6 +860,7 @@ public class HelloApplication extends Application implements ActionListener {
                     }
                 } else {
                     stage.setScene(startingScene);
+                    decisiveCheck = false;
                     stop = !stop;
                     turn = 0;
                     turnOfPlayer1 = true;
@@ -902,6 +922,13 @@ public class HelloApplication extends Application implements ActionListener {
                 field[x][y].setOnAction(buttonPress);
                 // set position in gridpane
                 gridPane.add(field[x][y], x, y + 1);
+                displayWin[x][y] = new RotateTransition();
+                displayWin[x][y].setDuration(Duration.millis(1000));
+                displayWin[x][y].setAxis(Rotate.Z_AXIS);
+                displayWin[x][y].setAutoReverse(true);
+                displayWin[x][y].setCycleCount(500);
+                displayWin[x][y].setByAngle(360);
+                displayWin[x][y].setNode(field[x][y]);
             }
         }
 
@@ -958,7 +985,6 @@ public class HelloApplication extends Application implements ActionListener {
             field1 = new char[width][width];
             for (int y = 0; y < width; ++y) {
                 for (int x = 0; x < width; ++x) {
-
                     if (field[x][y].getText().equals("")) {
                         field1[x][y] = '\0';
                     } else {
@@ -1059,6 +1085,9 @@ public class HelloApplication extends Application implements ActionListener {
                         }
                     }
                     if (tempcheck) {
+                        if(decisiveCheck) {
+                            winDisplay(x, y, 0);
+                        }
                         return true;
                     }
                 }
@@ -1071,6 +1100,9 @@ public class HelloApplication extends Application implements ActionListener {
                         }
                     }
                     if (tempcheck) {
+                        if(decisiveCheck) {
+                            winDisplay(x, y, 1);
+                        }
                         return true;
                     }
                 }
@@ -1093,6 +1125,9 @@ public class HelloApplication extends Application implements ActionListener {
                         }
                     }
                     if (tempcheck) {
+                        if(decisiveCheck) {
+                            winDisplay(x, y, 2);
+                        }
                         return true;
                     }
                 }
@@ -1106,6 +1141,9 @@ public class HelloApplication extends Application implements ActionListener {
 
                     }
                     if (tempcheck) {
+                        if(decisiveCheck) {
+                            winDisplay(x, y, 3);
+                        }
                         return true;
                     }
                 }
@@ -1168,6 +1206,9 @@ public class HelloApplication extends Application implements ActionListener {
                 for (int x = 0; x < width - 1; ++x) {
                     if (field[x][y] != '\0') {
                         if ((field[x][y] == field[x + 1][y]) && (field[x][y] == field[x][y + 1]) && (field[x][y] == field[x + 1][y + 1])) {
+                            if(decisiveCheck) {
+                                winDisplay(x, y, 4);
+                            }
                             return true;
                         }
                     }
@@ -1178,6 +1219,9 @@ public class HelloApplication extends Application implements ActionListener {
                 for (int x = 1; x < width - 1; ++x) {
                     if (field[x][y] != '\0') {
                         if ((field[x][y] == field[x + 1][y + 1]) && (field[x][y] == field[x - 1][y + 1]) && (field[x][y] == field[x][y + 2])) {
+                            if(decisiveCheck) {
+                                winDisplay(x, y, 5);
+                            }
                             return true;
                         }
                     }
@@ -1189,6 +1233,9 @@ public class HelloApplication extends Application implements ActionListener {
                 for (int x = 1; x < width - 1; ++x) {
                     if (field[x][y] != '\0') {
                         if ((field[x][y] == field[x][y + 1]) && (field[x][y] == field[x + 1][y + 1]) && (field[x][y] == field[x - 1][y + 1]) && (field[x][y] == field[x][y + 2])) {
+                            if(decisiveCheck) {
+                                winDisplay(x, y, 6);
+                            }
                             return true;
                         }
                     }
@@ -1199,6 +1246,74 @@ public class HelloApplication extends Application implements ActionListener {
         return tempcheck;
     }
 
+    private void winDisplay (int x, int y, int type){
+        int limits;
+        if(width == 3){
+            limits = 3;
+        }else if(width < 7){
+            limits = 4;
+        }else{
+            limits = 5;
+        }
+        switch(type){
+            case 0 -> {
+                for(int i = 0; i < limits; ++i){
+                    field[x + i][y].setStyle("-fx-background-color: #ffd700");
+                    displayWin[x + i][y].play();
+                }
+            }
+            case 1 -> {
+                for(int i = 0; i < limits; ++i){
+                    field[x][y + i].setStyle("-fx-background-color: #ffd700");
+                    displayWin[x][y + i].play();
+                }
+            }
+            case 2 -> {
+                for(int i = 0; i < limits; ++i){
+                    field[x + i][y + i].setStyle("-fx-background-color: #ffd700");
+                    displayWin[x + i][y + i].play();
+                }
+            }
+            case 3 -> {
+                for(int i = 0; i < limits; ++i){
+                    field[x - i][y + i].setStyle("-fx-background-color: #ffd700");
+                    displayWin[x - i][y + i].play();
+                }
+            }
+            case 4 -> {
+                field[x][y].setStyle("-fx-background-color: #ffd700");
+                displayWin[x][y].play();
+                field[x + 1][y].setStyle("-fx-background-color: #ffd700");
+                displayWin[x + 1][y].play();
+                field[x][y + 1].setStyle("-fx-background-color: #ffd700");
+                displayWin[x][y + 1].play();
+                field[x + 1][y + 1].setStyle("-fx-background-color: #ffd700");
+                displayWin[x + 1][y + 1].play();
+            }
+            case 5 -> {
+                field[x][y].setStyle("-fx-background-color: #ffd700");
+                displayWin[x][y].play();
+                field[x + 1][y + 1].setStyle("-fx-background-color: #ffd700");
+                displayWin[x + 1][y + 1].play();
+                field[x - 1][y + 1].setStyle("-fx-background-color: #ffd700");
+                displayWin[x - 1][y + 1].play();
+                field[x][y + 2].setStyle("-fx-background-color: #ffd700");
+                displayWin[x][y + 2].play();
+            }
+            case 6 -> {
+                field[x][y].setStyle("-fx-background-color: #ffd700");
+                displayWin[x][y].play();
+                field[x + 1][y + 1].setStyle("-fx-background-color: #ffd700");
+                displayWin[x + 1][y + 1].play();
+                field[x - 1][y + 1].setStyle("-fx-background-color: #ffd700");
+                displayWin[x - 1][y + 1].play();
+                field[x][y + 1].setStyle("-fx-background-color: #ffd700");
+                displayWin[x][y + 1].play();
+                field[x][y + 2].setStyle("-fx-background-color: #ffd700");
+                displayWin[x][y + 2].play();
+            }
+        }
+    }
 
     public static void main(String[] args) {
         launch();
@@ -1210,6 +1325,7 @@ public class HelloApplication extends Application implements ActionListener {
             return;
         }
         minimaxBot();
+        decisiveCheck = true;
         if (checkForWin(null)) {
             if (turnOfPlayer1) {
                 Platform.runLater(new Runnable() {
@@ -1229,6 +1345,7 @@ public class HelloApplication extends Application implements ActionListener {
             stop = true;
             return;
         }
+        decisiveCheck = false;
         turnOfPlayer1 = !turnOfPlayer1;
         ++turn;
         if (turn >= width * width) {
