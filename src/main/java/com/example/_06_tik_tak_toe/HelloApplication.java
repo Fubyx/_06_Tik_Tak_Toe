@@ -388,6 +388,9 @@ public class HelloApplication extends Application implements ActionListener {
     }
 
     public void minimaxBot() {
+        if (this.turn >= width * width) {
+            return;
+        }
         char[][] botField = new char[width][width];
         for (int y = 0; y < width; y++) {
             for (int x = 0; x < width; x++) {
@@ -473,7 +476,7 @@ public class HelloApplication extends Application implements ActionListener {
     }
 
     private int botRecursion(char[][] botField, boolean turn, int depth) {
-        if (depth > 8 || this.turn + depth > width * width) {
+        if (depth > 6 || this.turn + depth >= width * width) {
             return 1;
         }
         int[][] scores = new int[width][width];
