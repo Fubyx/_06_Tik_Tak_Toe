@@ -410,33 +410,35 @@ public class HelloApplication extends Application implements ActionListener {
                         botField[x][y] = 'O';
                     }
                     if (botCheckForWin(botField)) {
+                        final int tempx = x;
+                        final int tempy = y;
                         if (turnOfPlayer1) {
                             if (Thread.currentThread().getName().equals("AWT-EventQueue-0")) {
                                 Platform.runLater(new Runnable() {
                                     @Override
                                     public void run() {
-                                        field[saveBiggestRecursionScore[1]][saveBiggestRecursionScore[2]].setText("X");
+                                        field[tempx][tempy].setText("X");
                                     }
                                 });
                             } else {
-                                field[saveBiggestRecursionScore[1]][saveBiggestRecursionScore[2]].setText("X");
+                                field[x][y].setText("X");
                             }
                         } else {
                             if (Thread.currentThread().getName().equals("AWT-EventQueue-0")) {
                                 Platform.runLater(new Runnable() {
                                     @Override
                                     public void run() {
-                                        field[saveBiggestRecursionScore[1]][saveBiggestRecursionScore[2]].setText("O");
+                                        field[tempx][tempy].setText("O");
                                     }
                                 });
                             } else {
-                                field[saveBiggestRecursionScore[1]][saveBiggestRecursionScore[2]].setText("O");
+                                field[x][y].setText("O");
                             }
                         }
                         return;
                     }
                     int tempScore = botRecursion(botField, !turnOfPlayer1, 1);
-                    if (tempScore > saveBiggestRecursionScore[0]) {
+                    if (tempScore > saveBiggestRecursionScore[0] && tempScore != 0) {
                         saveBiggestRecursionScore[0] = tempScore;
                         saveBiggestRecursionScore[1] = x;
                         saveBiggestRecursionScore[2] = y;
@@ -486,6 +488,7 @@ public class HelloApplication extends Application implements ActionListener {
                         botField[x][y] = 'O';
                     }
                     if (botCheckForWin(botField)) {
+                        botField[x][y] = '\0';
                         if (depth % 2 == 1) {
                             return -2;
                             //scores[x][y] = -2;
@@ -500,7 +503,8 @@ public class HelloApplication extends Application implements ActionListener {
                 }
             }
         }
-        int saveScore = scores[0][0];
+
+        int saveScore = 0;
 
         if (depth % 2 == 1) {
             for (int y = 0; y < width; y++) {
@@ -518,6 +522,9 @@ public class HelloApplication extends Application implements ActionListener {
                     }
                 }
             }
+        }
+        if (saveScore == 0) {
+            saveScore = 1;
         }
         return saveScore;
     }
