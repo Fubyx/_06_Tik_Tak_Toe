@@ -15,16 +15,27 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.effect.Glow;
 import javafx.scene.layout.GridPane;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import javafx.util.Duration;
+import javafx.scene.media.Media;
 
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.io.IOException;
 import java.util.Random;
 
-import javax.swing.*;
+import javax.swing.Timer;
+
+
+
+
+
+//Sound Effect by <a href="https://pixabay.com/users/phoenix_connection_brazil-6017471/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=99300">Phoenix_Connection_Brazil</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=99300">Pixabay</a>
 
 public class HelloApplication extends Application implements ActionListener {
 
@@ -43,6 +54,13 @@ public class HelloApplication extends Application implements ActionListener {
     private boolean[] toBotStart;
     private RotateTransition [][]displayWin;
     private boolean decisiveCheck;
+
+    Glow winningGlow;
+    private Timer glowTimer;
+    private boolean glowRising;
+    MediaPlayer soundPlayer;
+    MediaPlayer botWinSound;
+    private boolean playerWin;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -615,6 +633,14 @@ public class HelloApplication extends Application implements ActionListener {
 
     private void initGame(Stage stage) {
 
+        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent windowEvent) {
+                Platform.exit();
+                System.exit(0);
+            }
+        });
+
         GridPane gridPane = new GridPane();
         turnOfPlayer1 = true;
 
@@ -632,10 +658,27 @@ public class HelloApplication extends Application implements ActionListener {
 
         displayWin = new RotateTransition[width][width];
 
+        winningGlow = new Glow(0.6);
+
+        glowTimer = new Timer(100, this);
+        glowRising = true;
+
+        String musicFile ="src/audio/s02.mp3";
+        Media sound = new Media(new File(musicFile).toURI().toString());
+        botWinSound = new MediaPlayer(sound);
+        botWinSound.setVolume(0.5);
+
+
+        soundPlayer = new MediaPlayer(sound);
+        soundPlayer.setVolume(0.5);
+        playerWin = true;
+
         EventHandler buttonPress = new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent e) {
                 if (!stop) {
+                    soundPlayer.stop();
+                    soundPlayer.play();
                     if (turn >= (width * width)) {
                         winnerLabel.setText("Draw");
                         stop = true;
@@ -816,12 +859,14 @@ public class HelloApplication extends Application implements ActionListener {
                                     minimaxBot();
 
                                     decisiveCheck = true;
+                                    playerWin = false;
                                     if (checkForWin(null)) {
                                         winnerLabel.setText("O won");
                                         stop = true;
                                         return;
                                     }
                                     decisiveCheck = false;
+                                    playerWin = true;
                                     turnOfPlayer1 = !turnOfPlayer1;
                                     ++turn;
                                 }
@@ -841,12 +886,15 @@ public class HelloApplication extends Application implements ActionListener {
                                     minimaxBot();
 
                                     decisiveCheck = true;
+                                    playerWin = false;
                                     if (checkForWin(null)) {
+                                        System.out.println("Test");
                                         winnerLabel.setText("X won");
                                         stop = true;
                                         return;
                                     }
                                     decisiveCheck = false;
+                                    playerWin = true;
                                     turnOfPlayer1 = !turnOfPlayer1;
                                     ++turn;
                                 }
@@ -865,10 +913,11 @@ public class HelloApplication extends Application implements ActionListener {
                     turn = 0;
                     turnOfPlayer1 = true;
                     width = 0;
-                    mode = 13;
+                    mode = 0;
                     if (botVBotTimer != null) {
                         botVBotTimer.stop();
                     }
+                    glowTimer.stop();
                 }
             }
         };
@@ -922,6 +971,7 @@ public class HelloApplication extends Application implements ActionListener {
                 field[x][y].setOnAction(buttonPress);
                 // set position in gridpane
                 gridPane.add(field[x][y], x, y + 1);
+
                 displayWin[x][y] = new RotateTransition();
                 displayWin[x][y].setDuration(Duration.millis(1000));
                 displayWin[x][y].setAxis(Rotate.Z_AXIS);
@@ -1247,6 +1297,10 @@ public class HelloApplication extends Application implements ActionListener {
     }
 
     private void winDisplay (int x, int y, int type){
+        if(!playerWin){
+            botWinSound.stop();
+            botWinSound.play();
+        }
         int limits;
         if(width == 3){
             limits = 3;
@@ -1259,25 +1313,33 @@ public class HelloApplication extends Application implements ActionListener {
             case 0 -> {
                 for(int i = 0; i < limits; ++i){
                     field[x + i][y].setStyle("-fx-background-color: #ffd700");
+                    field[x + i][y].setEffect(winningGlow);
                     displayWin[x + i][y].play();
+                    glowTimer.start();
                 }
             }
             case 1 -> {
                 for(int i = 0; i < limits; ++i){
                     field[x][y + i].setStyle("-fx-background-color: #ffd700");
+                    field[x][y + i].setEffect(winningGlow);
                     displayWin[x][y + i].play();
+                    glowTimer.start();
                 }
             }
             case 2 -> {
                 for(int i = 0; i < limits; ++i){
                     field[x + i][y + i].setStyle("-fx-background-color: #ffd700");
+                    field[x + i][y + i].setEffect(winningGlow);
                     displayWin[x + i][y + i].play();
+                    glowTimer.start();
                 }
             }
             case 3 -> {
                 for(int i = 0; i < limits; ++i){
                     field[x - i][y + i].setStyle("-fx-background-color: #ffd700");
+                    field[x - i][y + i].setEffect(winningGlow);
                     displayWin[x - i][y + i].play();
+                    glowTimer.start();
                 }
             }
             case 4 -> {
@@ -1321,6 +1383,21 @@ public class HelloApplication extends Application implements ActionListener {
 
     @Override
     public void actionPerformed(java.awt.event.ActionEvent e) {
+        if(e.getSource().equals(glowTimer)){
+            double glowLevel = winningGlow.getLevel();
+            if(glowLevel > 1) {
+                glowRising = false;
+            }else if(glowLevel < 0.1){
+                glowRising = true;
+            }
+            if(glowRising){
+                winningGlow.setLevel(glowLevel + 0.1);
+            }else{
+                winningGlow.setLevel(glowLevel - 0.1);
+            }
+            return;
+        }
+        System.out.println("Test");
         if (turn >= width * width) {
             return;
         }
