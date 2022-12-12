@@ -1,5 +1,6 @@
 package com.example._06_tik_tak_toe;
 
+import javafx.animation.Animation;
 import javafx.animation.RotateTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -57,12 +58,15 @@ public class HelloApplication extends Application implements ActionListener {
     Glow winningGlow;
     private Timer glowTimer;
     private boolean glowRising;
-    MediaPlayer clickSound;
+    MediaPlayer soundPlayer;
     MediaPlayer botWinSound;
     MediaPlayer occupiedSound;
     MediaPlayer playerWinSound;
     MediaPlayer drawSound;
+
     private boolean playerWin;
+
+
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -200,7 +204,7 @@ public class HelloApplication extends Application implements ActionListener {
                         }
                         return;
                     }
-                    int tempScore = botRecursion(botField, !turnOfPlayer1, 1);
+                    int tempScore = -botRecursion(botField, !turnOfPlayer1, 1);
                     if (tempScore > saveBiggestRecursionScore[0] && tempScore != 0) {
                         saveBiggestRecursionScore[0] = tempScore;
                         saveBiggestRecursionScore[1] = x;
@@ -236,9 +240,11 @@ public class HelloApplication extends Application implements ActionListener {
     }
 
     private int botRecursion(char[][] botField, boolean turn, int depth) {
-        if (depth > 6 || this.turn + depth >= width * width) {
+        if (depth > 8 || this.turn + depth >= width * width) {
             return 1;
         }
+
+        int saveScore = 0, tempScore;
         int[][] scores = new int[width][width];
 
         for (int y = 0; y < width; y++) {
@@ -252,45 +258,28 @@ public class HelloApplication extends Application implements ActionListener {
                     }
                     if (botCheckForWin(botField)) {
                         botField[x][y] = '\0';
-                        if (depth % 2 == 1) {
-                            return -(10-depth);
-                            //scores[x][y] = -2;
-                        } else {
-                            return 10-depth;
-                            //scores[x][y] = 2;
-                        }
+                        return (10 - depth);
+                        //scores[x][y] = -2;
                     } else {
-                        scores[x][y] = botRecursion(botField, !turn, depth + 1);
+                        tempScore = -botRecursion(botField, !turn, depth + 1);
+                        if (tempScore > 1) {
+                            return tempScore;
+                        }
+                        if (tempScore > saveScore || saveScore == 0) {
+                            saveScore = tempScore;
+                        }
                     }
                     botField[x][y] = '\0';
                 }
             }
         }
-
-        int saveScore = 0;
-
-        if (depth % 2 == 1) {
-            for (int y = 0; y < width; y++) {
-                for (int x = 0; x < width; x++) {
-                    if ((saveScore > scores[x][y] || saveScore == 0) && scores[x][y] != 0) {
-                        saveScore = scores[x][y];
-                    }
-                }
-            }
-        } else {
-            for (int y = 0; y < width; y++) {
-                for (int x = 0; x < width; x++) {
-                    if ((saveScore < scores[x][y] || saveScore == 0) && scores[x][y] != 0) {
-                        saveScore = scores[x][y];
-                    }
-                }
-            }
-        }
         if (saveScore == 0) {
-            saveScore = 1;
+            return 1;
         }
         return saveScore;
     }
+
+
 
     private void initGame(Stage stage) {
 
@@ -402,96 +391,17 @@ public class HelloApplication extends Application implements ActionListener {
                         switch (mode) {
                             case 0 -> {
                                 effect = 0;
-                                /*
-                                if (temp.getText().equals("")) {
-                                    if (turnOfPlayer1) {
-                                        temp.setText("X");
-                                        if (checkForWin(null)) {
-                                            winnerLabel.setText("Player X won");
-                                            stop = true;
-                                            return;
-                                        }
-                                    } else {
-                                        temp.setText("O");
-                                        if (checkForWin(null)) {
-                                            winnerLabel.setText("Player O won");
-                                            stop = true;
-                                            return;
-                                        }
-                                    }
-                                    turnOfPlayer1 = !turnOfPlayer1;
-                                    ++turn;
-                                }//*/
                             }
                             case 1 -> {
                                 effect = 1;
-                                /*
-                                if (temp.getText().equals("") && turnOfPlayer1) {
-                                    temp.setText("X");
-                                    if (checkForWin(null)) {
-                                        winnerLabel.setText("Player X won");
-                                        stop = true;
-                                        return;
-                                    }
-
-                                    turnOfPlayer1 = !turnOfPlayer1;
-                                    ++turn;
-                                    bot();
-                                    if (checkForWin(null)) {
-                                        winnerLabel.setText("Player O won");
-                                        stop = true;
-                                        return;
-                                    }
-                                    turnOfPlayer1 = !turnOfPlayer1;
-                                    ++turn;
-                                }//*/
                             }
                             case 2 -> {
                                 effect = 2;
-                                /*
-                                if (temp.getText().equals("") && !turnOfPlayer1) {
-                                    temp.setText("O");
-                                    if (checkForWin(null)) {
-                                        winnerLabel.setText("Player 0 won");
-                                        stop = true;
-                                        return;
-                                    }
-                                    turnOfPlayer1 = !turnOfPlayer1;
-                                    ++turn;
-                                    bot();
-                                    if (checkForWin(null)) {
-                                        winnerLabel.setText("Player X won");
-                                        stop = true;
-                                        return;
-                                    }
-                                    turnOfPlayer1 = !turnOfPlayer1;
-                                    ++turn;
-                                }//*/
                             }
                             case 4 -> {
                                 if (!toBotStart[0]) {
                                     effect = 1;
                                 }
-                                /*
-                                if (temp.getText().equals("") && turnOfPlayer1 && !toBotStart[0]) {
-                                    temp.setText("X");
-                                    if (checkForWin(null)) {
-                                        winnerLabel.setText("Player X won");
-                                        stop = true;
-                                        return;
-                                    }
-
-                                    turnOfPlayer1 = !turnOfPlayer1;
-                                    ++turn;
-                                    bot();
-                                    if (checkForWin(null)) {
-                                        winnerLabel.setText("Player O won");
-                                        stop = true;
-                                        return;
-                                    }
-                                    turnOfPlayer1 = !turnOfPlayer1;
-                                    ++turn;
-                                }//*/
                             }
                             case 5 -> {
                                 if (!toBotStart[0] && !toBotStart[1]) {
@@ -572,6 +482,7 @@ public class HelloApplication extends Application implements ActionListener {
                                     decisiveCheck = true;
                                     playerWin = false;
                                     if (checkForWin(null)) {
+                                        System.out.println("Test");
                                         winnerLabel.setText("X won");
                                         stop = true;
                                         return;
@@ -684,8 +595,10 @@ public class HelloApplication extends Application implements ActionListener {
 
         if (mode == 2 || mode == 3) {
             //bot();
-            int pos = new Random().nextInt(width * width);
-            field[pos % width][(int) (pos / width)].setText("X");
+            //int pos = new Random().nextInt(width * width);
+            //field[pos % width][(int) (pos / width)].setText("X");
+            minimaxBot();
+
             turnOfPlayer1 = !turnOfPlayer1;
             ++turn;
         }
@@ -694,26 +607,6 @@ public class HelloApplication extends Application implements ActionListener {
             if (mode == 3) {
                 botVBotTimer.start();
             }
-            /*
-            for (int count = 0; count < width * width; count++) {
-                bot();
-                if (checkForWin(null)) {
-                    if (turnOfPlayer1) {
-                        winnerLabel.setText("Player X won");
-                    } else {
-                        winnerLabel.setText("Player O won");
-                    }
-                    stop = true;
-                    return;
-                }
-                turnOfPlayer1 = !turnOfPlayer1;
-                ++turn;
-                if (turn >= width * width) {
-                    winnerLabel.setText("Draw");
-                    stop = true;
-                    return;
-                }
-            }*/
         }
     }
 
@@ -731,67 +624,6 @@ public class HelloApplication extends Application implements ActionListener {
             }
         }
         return botCheckForWin(field1);
-        /* returns true if someone won
-        String checkString = "";
-        boolean tempcheck = true;
-
-        // straight lines
-
-        for (int y = 0; y < width; y++) {
-            tempcheck = true;
-            checkString = field[0][y].getText();
-            for (int x = 0; x < width; x++) {
-                if (field[x][y].getText().equals("") || !field[x][y].getText().equals(checkString)) {
-                    tempcheck = false;
-                    break;
-                }
-            }
-            if (tempcheck) {
-                return true;
-            }
-        }
-        for (int x = 0; x < width; x++) {
-            tempcheck = true;
-            checkString = field[x][0].getText();
-            for (int y = 0; y < width; y++) {
-                if (field[x][y].getText().equals("") || !field[x][y].getText().equals(checkString)) {
-                    tempcheck = false;
-                    break;
-                }
-            }
-            if (tempcheck) {
-                return true;
-            }
-        }
-
-        // diagonals
-
-        tempcheck = true;
-        checkString = field[0][0].getText();
-        for (int x = 0; x < width; x++) {
-            if (field[x][x].getText().equals("") || !field[x][x].getText().equals(checkString)) {
-                tempcheck = false;
-                break;
-            }
-        }
-        if (tempcheck) {
-            return true;
-        }
-
-        tempcheck = true;
-        checkString = field[0][width - 1].getText();
-        for (int x = 0; x < width; x++) {
-            if (field[x][width - x - 1].getText().equals("") || !field[x][width - 1 - x].getText().equals(checkString)) {
-                tempcheck = false;
-                break;
-            }
-        }
-        if (tempcheck) {
-            return true;
-        }
-
-        return false;
-        //*/
     }
 
     private boolean botCheckForWin(char[][] field) {
@@ -827,7 +659,7 @@ public class HelloApplication extends Application implements ActionListener {
                         }
                     }
                     if (tempcheck) {
-                        if(decisiveCheck) {
+                        if (decisiveCheck) {
                             winDisplay(x, y, 0);
                         }
                         return true;
@@ -891,57 +723,7 @@ public class HelloApplication extends Application implements ActionListener {
                 }
             }
         }
-        /*
 
-        for (int y = 0; y < width; y++) {
-            tempcheck = true;
-            check = field[0][y];
-            for (int x = 0; x < (Math.min(width, 4)); x++) {
-                if (field[x][y] == '\0' || !(field[x][y] == check)) {
-                    tempcheck = false;
-                    break;
-                }
-            }
-            if (tempcheck) {
-                return true;
-            }
-        }
-        for (int x = 0; x < width; x++) {
-            tempcheck = true;
-            check = field[x][0];
-            for (int y = 0; y < width; y++) {
-                if (field[x][y] == '\0' || !(field[x][y] == check)) {
-                    tempcheck = false;
-                    break;
-                }
-            }
-            if (tempcheck) {
-                return true;
-            }
-        }
-
-        // diagonals
-        tempcheck = true;
-        check = field[0][0];
-        for (int x = 0; x < width; x++) {
-            if (field[x][x] == '\0' || !(field[x][x] == check)) {
-                tempcheck = false;
-                break;
-            }
-        }
-        if (tempcheck) {
-            return true;
-        }
-
-        tempcheck = true;
-        check = field[0][width - 1];
-        for (int x = 0; x < width; x++) {
-            if (field[x][width - x - 1] == '\0' || !(field[x][width - 1 - x] == check)) {
-                tempcheck = false;
-                break;
-            }
-        }
-        //*/
         if (limit == 4) {
             /*/squares
             for (int y = 0; y < width - 1; ++y) {
@@ -975,7 +757,7 @@ public class HelloApplication extends Application implements ActionListener {
                 for (int x = 1; x < width - 1; ++x) {
                     if (field[x][y] != '\0') {
                         if ((field[x][y] == field[x][y + 1]) && (field[x][y] == field[x + 1][y + 1]) && (field[x][y] == field[x - 1][y + 1]) && (field[x][y] == field[x][y + 2])) {
-                            if(decisiveCheck) {
+                            if (decisiveCheck) {
                                 winDisplay(x, y, 6);
                             }
                             return true;
@@ -988,8 +770,8 @@ public class HelloApplication extends Application implements ActionListener {
         return tempcheck;
     }
 
-    private void winDisplay (int x, int y, int type){
-        if(!playerWin){
+    private void winDisplay(int x, int y, int type) {
+        if (!playerWin) {
             botWinSound.stop();
             botWinSound.play();
         }else{
@@ -1011,6 +793,7 @@ public class HelloApplication extends Application implements ActionListener {
                     field[x + i][y].setStyle("-fx-background-color: #ffd700");
                     field[x + i][y].setEffect(winningGlow);
                     displayWin[x + i][y].play();
+                    glowTimer.start();
                 }
             }
             case 1 -> {
@@ -1018,6 +801,7 @@ public class HelloApplication extends Application implements ActionListener {
                     field[x][y + i].setStyle("-fx-background-color: #ffd700");
                     field[x][y + i].setEffect(winningGlow);
                     displayWin[x][y + i].play();
+                    glowTimer.start();
                 }
             }
             case 2 -> {
@@ -1025,6 +809,7 @@ public class HelloApplication extends Application implements ActionListener {
                     field[x + i][y + i].setStyle("-fx-background-color: #ffd700");
                     field[x + i][y + i].setEffect(winningGlow);
                     displayWin[x + i][y + i].play();
+                    glowTimer.start();
                 }
             }
             case 3 -> {
@@ -1032,6 +817,7 @@ public class HelloApplication extends Application implements ActionListener {
                     field[x - i][y + i].setStyle("-fx-background-color: #ffd700");
                     field[x - i][y + i].setEffect(winningGlow);
                     displayWin[x - i][y + i].play();
+                    glowTimer.start();
                 }
             }
             case 4 -> {

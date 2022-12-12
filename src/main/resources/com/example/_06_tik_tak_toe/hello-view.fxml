@@ -34,4 +34,6 @@
     <Button text="Play" GridPane.rowIndex="2" prefHeight="1000.0" prefWidth="10000000" fx:id="startButton"/>
 
 </GridPane>
+<!-- what does this code do?
+1. >
 
