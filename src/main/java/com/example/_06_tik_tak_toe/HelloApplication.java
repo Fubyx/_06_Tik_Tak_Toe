@@ -1,6 +1,5 @@
 package com.example._06_tik_tak_toe;
 
-import javafx.animation.Animation;
 import javafx.animation.RotateTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -58,8 +57,11 @@ public class HelloApplication extends Application implements ActionListener {
     Glow winningGlow;
     private Timer glowTimer;
     private boolean glowRising;
-    MediaPlayer soundPlayer;
+    MediaPlayer clickSound;
     MediaPlayer botWinSound;
+    MediaPlayer occupiedSound;
+    MediaPlayer playerWinSound;
+    MediaPlayer drawSound;
     private boolean playerWin;
 
     @Override
@@ -518,10 +520,10 @@ public class HelloApplication extends Application implements ActionListener {
                     if (botCheckForWin(botField)) {
                         botField[x][y] = '\0';
                         if (depth % 2 == 1) {
-                            return -2;
+                            return -(10-depth);
                             //scores[x][y] = -2;
                         } else {
-                            return 2;
+                            return 10-depth;
                             //scores[x][y] = 2;
                         }
                     } else {
@@ -663,28 +665,51 @@ public class HelloApplication extends Application implements ActionListener {
         glowTimer = new Timer(100, this);
         glowRising = true;
 
-        String musicFile ="src/audio/s02.mp3";
+        String musicFile ="src/audio/botWin.mp3";
         Media sound = new Media(new File(musicFile).toURI().toString());
         botWinSound = new MediaPlayer(sound);
-        botWinSound.setVolume(0.5);
-
-
-        soundPlayer = new MediaPlayer(sound);
-        soundPlayer.setVolume(0.5);
+        //botWinSound.setVolume(0.5);
         playerWin = true;
+
+        musicFile = "src/audio/occupied.mp3";
+        sound = new Media(new File(musicFile).toURI().toString());
+        occupiedSound = new MediaPlayer(sound);
+        occupiedSound.setVolume(0.5);
+
+        musicFile = "src/audio/playerWin.mp3";
+        sound = new Media(new File(musicFile).toURI().toString());
+        playerWinSound = new MediaPlayer(sound);
+        playerWinSound.setVolume(0.5);
+
+        musicFile = "src/audio/drawSound.mp3";
+        sound = new Media(new File(musicFile).toURI().toString());
+        drawSound = new MediaPlayer(sound);
+        //drawSound.setVolume(0.5);
+
+        /*
+        clickSound = new MediaPlayer(sound);
+        clickSound.setVolume(0.5);
+        //soundPlayer.setStopTime(Duration.millis(200));
+        */
+
+
 
         EventHandler buttonPress = new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent e) {
                 if (!stop) {
-                    soundPlayer.stop();
-                    soundPlayer.play();
                     if (turn >= (width * width)) {
                         winnerLabel.setText("Draw");
+                        drawSound.stop();
+                        drawSound.play();
                         stop = true;
                         return;
                     }
                     if (e.getSource() instanceof Button temp) {
+                        if(!temp.getText().equals("")){
+                            occupiedSound.stop();
+                            occupiedSound.play();
+                        }
                         if ((mode == 4 || mode == 5) && temp.equals(toBot[0])) {
                             if (mode == 4) {
                                 botVBotTimer.start();
@@ -888,7 +913,6 @@ public class HelloApplication extends Application implements ActionListener {
                                     decisiveCheck = true;
                                     playerWin = false;
                                     if (checkForWin(null)) {
-                                        System.out.println("Test");
                                         winnerLabel.setText("X won");
                                         stop = true;
                                         return;
@@ -903,6 +927,8 @@ public class HelloApplication extends Application implements ActionListener {
                     }
                     if (turn >= (width * width)) {
                         winnerLabel.setText("Draw");
+                        drawSound.stop();
+                        drawSound.play();
                         stop = true;
                         return;
                     }
@@ -918,6 +944,8 @@ public class HelloApplication extends Application implements ActionListener {
                         botVBotTimer.stop();
                     }
                     glowTimer.stop();
+                    playerWinSound.stop();
+                    drawSound.stop();
                 }
             }
         };
@@ -1114,11 +1142,16 @@ public class HelloApplication extends Application implements ActionListener {
 
         // straight lines
         int limit;
-        if (width < 7) {
-            limit = Math.min(width, 4);
-        } else {
-            limit = 5;
+        if(mode == 0){
+            if (width < 7) {
+                limit = Math.min(width, 4);
+            } else {
+                limit = 5;
+            }
+        }else{
+            limit = width;
         }
+
         for (int y = 0; y < width; ++y) {
             for (int x = 0; x < width; ++x) {
                 check = field[x][y];
@@ -1251,7 +1284,7 @@ public class HelloApplication extends Application implements ActionListener {
         }
         //*/
         if (limit == 4) {
-            //squares
+            /*/squares
             for (int y = 0; y < width - 1; ++y) {
                 for (int x = 0; x < width - 1; ++x) {
                     if (field[x][y] != '\0') {
@@ -1263,7 +1296,7 @@ public class HelloApplication extends Application implements ActionListener {
                         }
                     }
                 }
-            }
+            }*/
             //diamond
             for (int y = 0; y < width - 2; ++y) {
                 for (int x = 1; x < width - 1; ++x) {
@@ -1277,7 +1310,7 @@ public class HelloApplication extends Application implements ActionListener {
                     }
                 }
             }
-        } else if (limit == 5) {
+        } /*else if (limit == 5) {
             //cross
             for (int y = 0; y < width - 2; ++y) {
                 for (int x = 1; x < width - 1; ++x) {
@@ -1291,7 +1324,7 @@ public class HelloApplication extends Application implements ActionListener {
                     }
                 }
             }
-        }
+        }*/
 
         return tempcheck;
     }
@@ -1300,6 +1333,9 @@ public class HelloApplication extends Application implements ActionListener {
         if(!playerWin){
             botWinSound.stop();
             botWinSound.play();
+        }else{
+            playerWinSound.stop();
+            playerWinSound.play();
         }
         int limits;
         if(width == 3){
@@ -1309,13 +1345,13 @@ public class HelloApplication extends Application implements ActionListener {
         }else{
             limits = 5;
         }
+        glowTimer.start();
         switch(type){
             case 0 -> {
                 for(int i = 0; i < limits; ++i){
                     field[x + i][y].setStyle("-fx-background-color: #ffd700");
                     field[x + i][y].setEffect(winningGlow);
                     displayWin[x + i][y].play();
-                    glowTimer.start();
                 }
             }
             case 1 -> {
@@ -1323,7 +1359,6 @@ public class HelloApplication extends Application implements ActionListener {
                     field[x][y + i].setStyle("-fx-background-color: #ffd700");
                     field[x][y + i].setEffect(winningGlow);
                     displayWin[x][y + i].play();
-                    glowTimer.start();
                 }
             }
             case 2 -> {
@@ -1331,7 +1366,6 @@ public class HelloApplication extends Application implements ActionListener {
                     field[x + i][y + i].setStyle("-fx-background-color: #ffd700");
                     field[x + i][y + i].setEffect(winningGlow);
                     displayWin[x + i][y + i].play();
-                    glowTimer.start();
                 }
             }
             case 3 -> {
@@ -1339,39 +1373,63 @@ public class HelloApplication extends Application implements ActionListener {
                     field[x - i][y + i].setStyle("-fx-background-color: #ffd700");
                     field[x - i][y + i].setEffect(winningGlow);
                     displayWin[x - i][y + i].play();
-                    glowTimer.start();
                 }
             }
             case 4 -> {
+
                 field[x][y].setStyle("-fx-background-color: #ffd700");
+                field[x][y].setEffect(winningGlow);
                 displayWin[x][y].play();
+
+
                 field[x + 1][y].setStyle("-fx-background-color: #ffd700");
+                field[x + 1][y].setEffect(winningGlow);
                 displayWin[x + 1][y].play();
+
                 field[x][y + 1].setStyle("-fx-background-color: #ffd700");
+                field[x][y + 1].setEffect(winningGlow);
                 displayWin[x][y + 1].play();
+
                 field[x + 1][y + 1].setStyle("-fx-background-color: #ffd700");
+                field[x + 1][y + 1].setEffect(winningGlow);
                 displayWin[x + 1][y + 1].play();
             }
             case 5 -> {
                 field[x][y].setStyle("-fx-background-color: #ffd700");
+                field[x][y].setEffect(winningGlow);
                 displayWin[x][y].play();
+
                 field[x + 1][y + 1].setStyle("-fx-background-color: #ffd700");
+                field[x + 1][y + 1].setEffect(winningGlow);
                 displayWin[x + 1][y + 1].play();
+
                 field[x - 1][y + 1].setStyle("-fx-background-color: #ffd700");
+                field[x - 1][y + 1].setEffect(winningGlow);
                 displayWin[x - 1][y + 1].play();
+
                 field[x][y + 2].setStyle("-fx-background-color: #ffd700");
+                field[x][y + 2].setEffect(winningGlow);
                 displayWin[x][y + 2].play();
             }
             case 6 -> {
                 field[x][y].setStyle("-fx-background-color: #ffd700");
+                field[x][y].setEffect(winningGlow);
                 displayWin[x][y].play();
+
                 field[x + 1][y + 1].setStyle("-fx-background-color: #ffd700");
+                field[x + 1][y + 1].setEffect(winningGlow);
                 displayWin[x + 1][y + 1].play();
+
                 field[x - 1][y + 1].setStyle("-fx-background-color: #ffd700");
+                field[x - 1][y + 1].setEffect(winningGlow);
                 displayWin[x - 1][y + 1].play();
+
                 field[x][y + 1].setStyle("-fx-background-color: #ffd700");
+                field[x][y + 1].setEffect(winningGlow);
                 displayWin[x][y + 1].play();
+
                 field[x][y + 2].setStyle("-fx-background-color: #ffd700");
+                field[x][y + 2].setEffect(winningGlow);
                 displayWin[x][y + 2].play();
             }
         }
@@ -1430,6 +1488,8 @@ public class HelloApplication extends Application implements ActionListener {
                 @Override
                 public void run() {
                     winnerLabel.setText("Draw");
+                    drawSound.stop();
+                    drawSound.play();
                 }
             });
             stop = true;
