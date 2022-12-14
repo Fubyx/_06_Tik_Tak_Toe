@@ -343,15 +343,6 @@ public class HelloApplication extends Application implements ActionListener {
         musicFile = "src/audio/drawSound.mp3";
         sound = new Media(new File(musicFile).toURI().toString());
         drawSound = new MediaPlayer(sound);
-        //drawSound.setVolume(0.5);
-
-        /*
-        clickSound = new MediaPlayer(sound);
-        clickSound.setVolume(0.5);
-        //soundPlayer.setStopTime(Duration.millis(200));
-        */
-
-
 
         EventHandler buttonPress = new EventHandler<ActionEvent>() {
             @Override
