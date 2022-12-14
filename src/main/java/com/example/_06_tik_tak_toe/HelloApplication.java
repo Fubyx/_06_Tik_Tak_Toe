@@ -32,9 +32,6 @@ import java.util.Random;
 import javax.swing.Timer;
 
 
-
-
-
 //Sound Effect by <a href="https://pixabay.com/users/phoenix_connection_brazil-6017471/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=99300">Phoenix_Connection_Brazil</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=99300">Pixabay</a>
 
 public class HelloApplication extends Application implements ActionListener {
@@ -52,7 +49,7 @@ public class HelloApplication extends Application implements ActionListener {
     private Label winnerLabel;
     private Button[] toBot;
     private boolean[] toBotStart;
-    private RotateTransition [][]displayWin;
+    private RotateTransition[][] displayWin;
     private boolean decisiveCheck;
 
     Glow winningGlow;
@@ -65,7 +62,6 @@ public class HelloApplication extends Application implements ActionListener {
     MediaPlayer drawSound;
 
     private boolean playerWin;
-
 
 
     @Override
@@ -243,13 +239,8 @@ public class HelloApplication extends Application implements ActionListener {
         if (depth > 8 || this.turn + depth >= width * width) {
             return 1;
         }
-
-        int saveScore = 0, tempScore;
-        int[][] scores = new int[width][width];
-
         for (int y = 0; y < width; y++) {
             for (int x = 0; x < width; x++) {
-                scores[x][y] = 0;
                 if (botField[x][y] == '\0') {
                     if (turn) {
                         botField[x][y] = 'X';
@@ -258,27 +249,39 @@ public class HelloApplication extends Application implements ActionListener {
                     }
                     if (botCheckForWin(botField)) {
                         botField[x][y] = '\0';
-                        return (10 - depth);
-                        //scores[x][y] = -2;
-                    } else {
-                        tempScore = -botRecursion(botField, !turn, depth + 1);
-                        if (tempScore > 1) {
-                            return tempScore;
-                        }
-                        if (tempScore > saveScore || saveScore == 0) {
-                            saveScore = tempScore;
-                        }
+                        return (20 - depth);
                     }
                     botField[x][y] = '\0';
                 }
             }
         }
-        if (saveScore == 0) {
-            return 1;
+
+        int saveScore = -30, tempScore;
+
+        for (int y = 0; y < width; y++) {
+            for (int x = 0; x < width; x++) {
+                if (botField[x][y] == '\0') {
+                    if (turn) {
+                        botField[x][y] = 'X';
+                    } else {
+                        botField[x][y] = 'O';
+                    }
+                    tempScore = -botRecursion(botField, !turn, depth + 1);
+                    botField[x][y] = '\0';
+                    if (tempScore > 0) {
+                        return tempScore;
+                    }
+                    if (tempScore > saveScore) {
+                        saveScore = tempScore;
+                    }
+                }
+            }
+        }
+        if (saveScore == -30) {
+            return 0;
         }
         return saveScore;
     }
-
 
 
     private void initGame(Stage stage) {
@@ -300,6 +303,53 @@ public class HelloApplication extends Application implements ActionListener {
         gridPane.setPadding(new Insets(20));
         gridPane.setAlignment(Pos.CENTER);
 
+        ObservableList<String> options =
+                FXCollections.observableArrayList(
+                        "Menu",
+                        "Restart",
+                        "Quit"
+                );
+        ComboBox comboBox = new ComboBox(options);
+        comboBox.setStyle("-fx-font-size: 8pt;");
+        comboBox.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                String temp = comboBox.getSelectionModel().getSelectedItem().toString();
+                if (temp.equals("Menu")) {
+                    stage.setScene(startingScene);
+                    decisiveCheck = false;
+                    turn = 0;
+                    turnOfPlayer1 = true;
+                    width = 0;
+                    mode = 0;
+                    if (botVBotTimer != null) {
+                        botVBotTimer.stop();
+                    }
+                    glowTimer.stop();
+                    playerWinSound.stop();
+                    drawSound.stop();
+                } else if (temp.equals("Restart")) {
+                    stop = false;
+                    decisiveCheck = false;
+                    turn = 0;
+                    turnOfPlayer1 = true;
+                    if (botVBotTimer != null) {
+                        botVBotTimer.stop();
+                    }
+                    glowTimer.stop();
+                    playerWinSound.stop();
+                    drawSound.stop();
+                    initGame(stage);
+                } else if (temp.equals("Quit")) {
+                    Platform.exit();
+                    System.exit(0);
+                }
+            }
+        });
+
+
+        gridPane.add(comboBox, 0, 0);
+
         winnerLabel = new Label("");
         winnerLabel.setPrefWidth(1000);
         winnerLabel.setPrefHeight(1000);
@@ -313,7 +363,7 @@ public class HelloApplication extends Application implements ActionListener {
         glowTimer = new Timer(100, this);
         glowRising = true;
 
-        String musicFile ="src/audio/botWin.mp3";
+        String musicFile = "src/audio/botWin.mp3";
         Media sound = new Media(new File(musicFile).toURI().toString());
         botWinSound = new MediaPlayer(sound);
         //botWinSound.setVolume(0.5);
@@ -341,7 +391,6 @@ public class HelloApplication extends Application implements ActionListener {
         */
 
 
-
         EventHandler buttonPress = new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent e) {
@@ -354,7 +403,7 @@ public class HelloApplication extends Application implements ActionListener {
                         return;
                     }
                     if (e.getSource() instanceof Button temp) {
-                        if(!temp.getText().equals("")){
+                        if (!temp.getText().equals("")) {
                             occupiedSound.stop();
                             occupiedSound.play();
                         }
@@ -522,7 +571,7 @@ public class HelloApplication extends Application implements ActionListener {
 
         if (mode == 4 || mode == 5) {
             if (mode == 4) {
-                gridPane.add(winnerLabel, 0, 0, width - 1, 1);
+                gridPane.add(winnerLabel, 0, 1, width - 1, 1);
                 toBot = new Button[1];
                 toBotStart = new boolean[1];
                 toBot[0] = new Button();
@@ -530,11 +579,11 @@ public class HelloApplication extends Application implements ActionListener {
                 toBot[0].setPrefHeight(1000);
                 toBot[0].setOnAction(buttonPress);
                 toBot[0].setStyle("-fx-background-color: #ff0000; ");
-                gridPane.add(toBot[0], width - 1, 0);
+                gridPane.add(toBot[0], width - 1, 1);
                 toBotStart[0] = false;
                 toBot[0].setText("A");
             } else {
-                gridPane.add(winnerLabel, 1, 0, width - 2, 1);
+                gridPane.add(winnerLabel, 1, 1, width - 2, 1);
                 toBot = new Button[2];
                 toBotStart = new boolean[2];
 
@@ -543,7 +592,7 @@ public class HelloApplication extends Application implements ActionListener {
                 toBot[0].setPrefHeight(1000);
                 toBot[0].setOnAction(buttonPress);
                 toBot[0].setStyle("-fx-background-color: #ff0000; ");
-                gridPane.add(toBot[0], width - 1, 0);
+                gridPane.add(toBot[0], width - 1, 1);
                 toBotStart[0] = false;
 
                 toBot[1] = new Button();
@@ -552,12 +601,12 @@ public class HelloApplication extends Application implements ActionListener {
                 toBot[1].setOnAction(buttonPress);
                 toBot[1].setStyle("-fx-background-color: #ff0000; ");
                 toBot[1].setText("A1");
-                gridPane.add(toBot[1], 0, 0);
+                gridPane.add(toBot[1], 0, 1);
                 toBotStart[1] = false;
                 toBot[0].setText("A2");
             }
         } else {
-            gridPane.add(winnerLabel, 0, 0, width, 1);
+            gridPane.add(winnerLabel, 0, 1, width, 1);
         }
 
         for (int y = 0; y < width; y++) {
@@ -568,7 +617,7 @@ public class HelloApplication extends Application implements ActionListener {
                 field[x][y].setPrefHeight(1000.0);
                 field[x][y].setOnAction(buttonPress);
                 // set position in gridpane
-                gridPane.add(field[x][y], x, y + 1);
+                gridPane.add(field[x][y], x, y + 2);
 
                 displayWin[x][y] = new RotateTransition();
                 displayWin[x][y].setDuration(Duration.millis(1000));
@@ -633,13 +682,13 @@ public class HelloApplication extends Application implements ActionListener {
 
         // straight lines
         int limit;
-        if(mode == 0){
+        if (mode == 0) {
             if (width < 7) {
                 limit = Math.min(width, 4);
             } else {
                 limit = 5;
             }
-        }else{
+        } else {
             limit = width;
         }
 
@@ -674,7 +723,7 @@ public class HelloApplication extends Application implements ActionListener {
                         }
                     }
                     if (tempcheck) {
-                        if(decisiveCheck) {
+                        if (decisiveCheck) {
                             winDisplay(x, y, 1);
                         }
                         return true;
@@ -699,7 +748,7 @@ public class HelloApplication extends Application implements ActionListener {
                         }
                     }
                     if (tempcheck) {
-                        if(decisiveCheck) {
+                        if (decisiveCheck) {
                             winDisplay(x, y, 2);
                         }
                         return true;
@@ -715,7 +764,7 @@ public class HelloApplication extends Application implements ActionListener {
 
                     }
                     if (tempcheck) {
-                        if(decisiveCheck) {
+                        if (decisiveCheck) {
                             winDisplay(x, y, 3);
                         }
                         return true;
@@ -743,7 +792,7 @@ public class HelloApplication extends Application implements ActionListener {
                 for (int x = 1; x < width - 1; ++x) {
                     if (field[x][y] != '\0') {
                         if ((field[x][y] == field[x + 1][y + 1]) && (field[x][y] == field[x - 1][y + 1]) && (field[x][y] == field[x][y + 2])) {
-                            if(decisiveCheck) {
+                            if (decisiveCheck) {
                                 winDisplay(x, y, 5);
                             }
                             return true;
@@ -774,22 +823,22 @@ public class HelloApplication extends Application implements ActionListener {
         if (!playerWin) {
             botWinSound.stop();
             botWinSound.play();
-        }else{
+        } else {
             playerWinSound.stop();
             playerWinSound.play();
         }
         int limits;
-        if(width == 3){
+        if (width == 3) {
             limits = 3;
-        }else if(width < 7){
+        } else if (width < 7) {
             limits = 4;
-        }else{
+        } else {
             limits = 5;
         }
         glowTimer.start();
-        switch(type){
+        switch (type) {
             case 0 -> {
-                for(int i = 0; i < limits; ++i){
+                for (int i = 0; i < limits; ++i) {
                     field[x + i][y].setStyle("-fx-background-color: #ffd700");
                     field[x + i][y].setEffect(winningGlow);
                     displayWin[x + i][y].play();
@@ -797,7 +846,7 @@ public class HelloApplication extends Application implements ActionListener {
                 }
             }
             case 1 -> {
-                for(int i = 0; i < limits; ++i){
+                for (int i = 0; i < limits; ++i) {
                     field[x][y + i].setStyle("-fx-background-color: #ffd700");
                     field[x][y + i].setEffect(winningGlow);
                     displayWin[x][y + i].play();
@@ -805,7 +854,7 @@ public class HelloApplication extends Application implements ActionListener {
                 }
             }
             case 2 -> {
-                for(int i = 0; i < limits; ++i){
+                for (int i = 0; i < limits; ++i) {
                     field[x + i][y + i].setStyle("-fx-background-color: #ffd700");
                     field[x + i][y + i].setEffect(winningGlow);
                     displayWin[x + i][y + i].play();
@@ -813,7 +862,7 @@ public class HelloApplication extends Application implements ActionListener {
                 }
             }
             case 3 -> {
-                for(int i = 0; i < limits; ++i){
+                for (int i = 0; i < limits; ++i) {
                     field[x - i][y + i].setStyle("-fx-background-color: #ffd700");
                     field[x - i][y + i].setEffect(winningGlow);
                     displayWin[x - i][y + i].play();
@@ -886,16 +935,16 @@ public class HelloApplication extends Application implements ActionListener {
 
     @Override
     public void actionPerformed(java.awt.event.ActionEvent e) {
-        if(e.getSource().equals(glowTimer)){
+        if (e.getSource().equals(glowTimer)) {
             double glowLevel = winningGlow.getLevel();
-            if(glowLevel > 1) {
+            if (glowLevel > 1) {
                 glowRising = false;
-            }else if(glowLevel < 0.1){
+            } else if (glowLevel < 0.1) {
                 glowRising = true;
             }
-            if(glowRising){
+            if (glowRising) {
                 winningGlow.setLevel(glowLevel + 0.1);
-            }else{
+            } else {
                 winningGlow.setLevel(glowLevel - 0.1);
             }
             return;
