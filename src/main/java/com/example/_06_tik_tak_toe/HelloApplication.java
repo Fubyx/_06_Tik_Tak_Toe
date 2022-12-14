@@ -105,12 +105,20 @@ public class HelloApplication extends Application implements ActionListener {
                             case "P+EvP+E" -> mode = 5;
                             default -> mode = 0;
                         }
+
                     } catch (NullPointerException ex) {
                         mode = 0;
+                    }
+                    if(mode != 0 && mode != 5){
+                        if(width > 6){
+                            throw new NullPointerException();
+                        }
                     }
                     initGame(stage);
                 } catch (NumberFormatException ex) {
                     label.setText("Enter a valid Number (<15)");
+                } catch (NullPointerException ex){
+                    label.setText("Enter a valid Number (<7)");
                 }
             }
         };
@@ -828,12 +836,14 @@ public class HelloApplication extends Application implements ActionListener {
             playerWinSound.play();
         }
         int limits;
-        if (width == 3) {
-            limits = 3;
-        } else if (width < 7) {
-            limits = 4;
+        if (mode == 0) {
+            if (width < 7) {
+                limits = Math.min(width, 4);
+            } else {
+                limits = 5;
+            }
         } else {
-            limits = 5;
+            limits = width;
         }
         glowTimer.start();
         switch (type) {
