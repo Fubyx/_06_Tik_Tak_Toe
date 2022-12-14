@@ -35,16 +35,14 @@ import javax.swing.Timer;
 
 
 
-//Sound Effect by <a href="https://pixabay.com/users/phoenix_connection_brazil-6017471/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=99300">Phoenix_Connection_Brazil</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=99300">Pixabay</a>
+//Sound Effect by <a href="https://pixabay.com">
 
 public class HelloApplication extends Application implements ActionListener {
-
-
     private boolean turnOfPlayer1 = true;
     private Button[][] field;
     private int width;
     private boolean stop = false;
-    short mode;
+    private short mode;
     private Scene startingScene;
     private int turn;
 
@@ -55,18 +53,14 @@ public class HelloApplication extends Application implements ActionListener {
     private RotateTransition [][]displayWin;
     private boolean decisiveCheck;
 
-    Glow winningGlow;
+    private Glow winningGlow;
     private Timer glowTimer;
     private boolean glowRising;
-    MediaPlayer soundPlayer;
-    MediaPlayer botWinSound;
-    MediaPlayer occupiedSound;
-    MediaPlayer playerWinSound;
-    MediaPlayer drawSound;
-
+    private MediaPlayer botWinSound;
+    private MediaPlayer occupiedSound;
+    private MediaPlayer playerWinSound;
+    private MediaPlayer drawSound;
     private boolean playerWin;
-
-
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -262,9 +256,9 @@ public class HelloApplication extends Application implements ActionListener {
                         //scores[x][y] = -2;
                     } else {
                         tempScore = -botRecursion(botField, !turn, depth + 1);
-                        if (tempScore > 1) {
+                        /*if (tempScore > 1) {
                             return tempScore;
-                        }
+                        }*/
                         if (tempScore > saveScore || saveScore == 0) {
                             saveScore = tempScore;
                         }
@@ -294,9 +288,6 @@ public class HelloApplication extends Application implements ActionListener {
         GridPane gridPane = new GridPane();
         turnOfPlayer1 = true;
 
-
-        //gridPane.setVgap(10);
-        //gridPane.setHgap(10);
         gridPane.setPadding(new Insets(20));
         gridPane.setAlignment(Pos.CENTER);
 
@@ -316,7 +307,6 @@ public class HelloApplication extends Application implements ActionListener {
         String musicFile ="src/audio/botWin.mp3";
         Media sound = new Media(new File(musicFile).toURI().toString());
         botWinSound = new MediaPlayer(sound);
-        //botWinSound.setVolume(0.5);
         playerWin = true;
 
         musicFile = "src/audio/occupied.mp3";
@@ -473,7 +463,6 @@ public class HelloApplication extends Application implements ActionListener {
                                     decisiveCheck = true;
                                     playerWin = false;
                                     if (checkForWin(null)) {
-                                        System.out.println("Test");
                                         winnerLabel.setText("X won");
                                         stop = true;
                                         return;
@@ -491,7 +480,6 @@ public class HelloApplication extends Application implements ActionListener {
                         drawSound.stop();
                         drawSound.play();
                         stop = true;
-                        return;
                     }
                 } else {
                     stage.setScene(startingScene);
@@ -571,9 +559,6 @@ public class HelloApplication extends Application implements ActionListener {
             }
         }
 
-        // using instance method for directly adding the node with columnspan and rowspan
-        // gridPane.add(someButton,0,2,TWO_COLUMN_SPAN,1);
-
         Scene scene;
         if (width < 7) {
             scene = new Scene(gridPane, 300, 300);
@@ -585,11 +570,11 @@ public class HelloApplication extends Application implements ActionListener {
         stage.setScene(scene);
 
         if (mode == 2 || mode == 3) {
-            //bot();
-            //int pos = new Random().nextInt(width * width);
-            //field[pos % width][(int) (pos / width)].setText("X");
+            /* random placement on first action of bot
+            int pos = new Random().nextInt(width * width);
+            field[pos % width][(int) (pos / width)].setText("X");
+            //*/
             minimaxBot();
-
             turnOfPlayer1 = !turnOfPlayer1;
             ++turn;
         }
@@ -622,7 +607,7 @@ public class HelloApplication extends Application implements ActionListener {
         char check = '\0';
         boolean tempcheck = true;
 
-        // straight lines
+        //setting win conditions
         int limit;
         if(mode == 0){
             if (width < 7) {
@@ -634,6 +619,7 @@ public class HelloApplication extends Application implements ActionListener {
             limit = width;
         }
 
+        // straight lines
         for (int y = 0; y < width; ++y) {
             for (int x = 0; x < width; ++x) {
                 check = field[x][y];
@@ -641,6 +627,7 @@ public class HelloApplication extends Application implements ActionListener {
                     tempcheck = false;
                     continue;
                 }
+                //horizontal
                 if (width - x >= limit) {
                     tempcheck = true;
                     for (int i = 0; i < limit; ++i) {
@@ -656,6 +643,7 @@ public class HelloApplication extends Application implements ActionListener {
                         return true;
                     }
                 }
+                //vertical
                 if (width - y >= limit) {
                     tempcheck = true;
                     for (int i = 0; i < limit; ++i) {
@@ -675,13 +663,17 @@ public class HelloApplication extends Application implements ActionListener {
         }
         //diagonals
         for (int y = 0; y < width; ++y) {
+            if(width - y > limit){
+                break;
+            }
             for (int x = 0; x < width; ++x) {
                 check = field[x][y];
                 if (check == '\0') {
                     tempcheck = false;
                     continue;
                 }
-                if (width - x >= limit && width - y >= limit) {
+                //to the right
+                if (width - x >= limit) {
                     tempcheck = true;
                     for (int i = 0; i < limit; ++i) {
                         if (field[x + i][y + i] != check) {
@@ -690,33 +682,34 @@ public class HelloApplication extends Application implements ActionListener {
                         }
                     }
                     if (tempcheck) {
-                        if(decisiveCheck) {
+                        if (decisiveCheck) {
                             winDisplay(x, y, 2);
                         }
                         return true;
                     }
                 }
-                if (x + 1 >= limit && width - y >= limit) {
+                // to the left
+                if (x + 1 >= limit) {
                     tempcheck = true;
                     for (int i = 0; i < limit; ++i) {
                         if (field[x - i][y + i] != check) {
                             tempcheck = false;
                             break;
                         }
-
                     }
                     if (tempcheck) {
-                        if(decisiveCheck) {
+                        if (decisiveCheck) {
                             winDisplay(x, y, 3);
                         }
                         return true;
                     }
                 }
+
             }
         }
 
         if (limit == 4) {
-            /*/squares
+            /*squares
             for (int y = 0; y < width - 1; ++y) {
                 for (int x = 0; x < width - 1; ++x) {
                     if (field[x][y] != '\0') {
@@ -757,7 +750,6 @@ public class HelloApplication extends Application implements ActionListener {
                 }
             }
         }
-
         return tempcheck;
     }
 
@@ -770,16 +762,18 @@ public class HelloApplication extends Application implements ActionListener {
             playerWinSound.play();
         }
         int limits;
-        if(width == 3){
-            limits = 3;
-        }else if(width < 7){
-            limits = 4;
+        if(mode == 0){
+            if (width < 7) {
+                limits = Math.min(width, 4);
+            } else {
+                limits = 5;
+            }
         }else{
-            limits = 5;
+            limits = width;
         }
         glowTimer.start();
         switch(type){
-            case 0 -> {
+            case 0 -> {//horizontal
                 for(int i = 0; i < limits; ++i){
                     field[x + i][y].setStyle("-fx-background-color: #ffd700");
                     field[x + i][y].setEffect(winningGlow);
@@ -787,7 +781,7 @@ public class HelloApplication extends Application implements ActionListener {
                     glowTimer.start();
                 }
             }
-            case 1 -> {
+            case 1 -> {//vertical
                 for(int i = 0; i < limits; ++i){
                     field[x][y + i].setStyle("-fx-background-color: #ffd700");
                     field[x][y + i].setEffect(winningGlow);
@@ -795,7 +789,7 @@ public class HelloApplication extends Application implements ActionListener {
                     glowTimer.start();
                 }
             }
-            case 2 -> {
+            case 2 -> {//diagonal right
                 for(int i = 0; i < limits; ++i){
                     field[x + i][y + i].setStyle("-fx-background-color: #ffd700");
                     field[x + i][y + i].setEffect(winningGlow);
@@ -803,7 +797,7 @@ public class HelloApplication extends Application implements ActionListener {
                     glowTimer.start();
                 }
             }
-            case 3 -> {
+            case 3 -> {//diagonals left
                 for(int i = 0; i < limits; ++i){
                     field[x - i][y + i].setStyle("-fx-background-color: #ffd700");
                     field[x - i][y + i].setEffect(winningGlow);
@@ -811,12 +805,10 @@ public class HelloApplication extends Application implements ActionListener {
                     glowTimer.start();
                 }
             }
-            case 4 -> {
-
+            case 4 -> {//square
                 field[x][y].setStyle("-fx-background-color: #ffd700");
                 field[x][y].setEffect(winningGlow);
                 displayWin[x][y].play();
-
 
                 field[x + 1][y].setStyle("-fx-background-color: #ffd700");
                 field[x + 1][y].setEffect(winningGlow);
@@ -830,7 +822,7 @@ public class HelloApplication extends Application implements ActionListener {
                 field[x + 1][y + 1].setEffect(winningGlow);
                 displayWin[x + 1][y + 1].play();
             }
-            case 5 -> {
+            case 5 -> {//diamond
                 field[x][y].setStyle("-fx-background-color: #ffd700");
                 field[x][y].setEffect(winningGlow);
                 displayWin[x][y].play();
@@ -847,7 +839,7 @@ public class HelloApplication extends Application implements ActionListener {
                 field[x][y + 2].setEffect(winningGlow);
                 displayWin[x][y + 2].play();
             }
-            case 6 -> {
+            case 6 -> {//cross
                 field[x][y].setStyle("-fx-background-color: #ffd700");
                 field[x][y].setEffect(winningGlow);
                 displayWin[x][y].play();
@@ -891,7 +883,6 @@ public class HelloApplication extends Application implements ActionListener {
             }
             return;
         }
-        System.out.println("Test");
         if (turn >= width * width) {
             return;
         }
@@ -929,7 +920,6 @@ public class HelloApplication extends Application implements ActionListener {
                 }
             });
             stop = true;
-            return;
         }
     }
 }
